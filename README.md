@@ -1,2 +1,3 @@
 # bl-speech-recognizer
-Some implemented use cases for SFSpeechRecognizer 
+
+Some implemented use cases for SFSpeechRecognizer. 
