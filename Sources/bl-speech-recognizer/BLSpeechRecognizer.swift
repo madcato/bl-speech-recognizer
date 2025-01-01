@@ -12,6 +12,7 @@ protocol BLSpeechRecognizerDelegate: AnyObject {
   func started()
   func finished()
   func speechRecognizer(available: Bool)
+  func speechRecognizer(error: Error)
 }
 
 protocol BLSpeechRecognizerInput {
@@ -67,40 +68,39 @@ final class BLSpeechRecognizer: NSObject {
     self.speechRecognizer = recognizer
   }
   
-  func requestAuthorization(_ onFinish: @escaping (Bool) -> Void) {
-    SFSpeechRecognizer.requestAuthorization { (authStatus) in
-      var isOK = false
-      switch authStatus {
-      case .authorized:
-        self.speechRecognizer.delegate = self
-        isOK = true
-      case .denied:
-        isOK = false
-        print(SpeechRecognizerError.userDenied.message)
-      case .restricted:
-        isOK = false
-        print(SpeechRecognizerError.recognitionRestricted.message)
-      case .notDetermined:
-        isOK = false
-        print(SpeechRecognizerError.notDetermined.message)
-      @unknown default:
-        fatalError("Unknown case")
-      }
-      if self.speechRecognizer.isAvailable {
-        onFinish(isOK)
-      } else {
-        fatalError(SpeechRecognizerError.speechRecognizerNotAvailable.message)
+  func requestAuthorization(_ onFinish: @escaping (Result<Bool, Error>) throws -> Void) {
+    SFSpeechRecognizer.requestAuthorization { authStatus in
+      do {
+        switch authStatus {
+        case .authorized:
+          try onFinish(.success(true))
+        case .denied:
+          try onFinish(.failure(SpeechRecognizerError.userDenied))
+        case .restricted:
+          try onFinish(.failure(SpeechRecognizerError.recognitionRestricted))
+        case .notDetermined:
+          try onFinish(.failure(SpeechRecognizerError.notDetermined))
+        @unknown default:
+          fatalError("Unknown case")
+        }
+      } catch {
+        self.delegate?.speechRecognizer(error: error)
       }
     }
   }
   
   public func start() {
+    self.speechRecognizer.delegate = self
     requestAuthorization { isOk in
-      if isOk {
+      switch isOk {
+      case .success:
+        guard self.speechRecognizer.isAvailable else {
+          throw SpeechRecognizerError.speechRecognizerNotAvailable
+        }
         self.inputSource.initialize()
-        self.startRecognition()
-      } else {
-        // TODO: return error
+        try self.startRecognition()
+      case .failure(let error):
+        throw error
       }
     }
   }
@@ -113,10 +113,10 @@ final class BLSpeechRecognizer: NSObject {
     recognitionRequest?.append(audioBuffer)
   }
   
-  private func startRecognition() {
+  private func startRecognition() throws {
     recognitionRequest = SFSpeechAudioBufferRecognitionRequest()  //3
     guard let recognitionRequest = recognitionRequest else {
-      fatalError(SpeechRecognizerError.recognitionTaskUnable.message)
+      throw SpeechRecognizerError.recognitionTaskUnable
     } //5
     recognitionRequest.shouldReportPartialResults = true  //6
     recognitionRequest.taskHint = taskType?.convert ?? SFSpeechRecognitionTaskHint.unspecified
@@ -156,7 +156,7 @@ final class BLSpeechRecognizer: NSObject {
       }
     }
     )
-    inputSource.configure(with: recognitionRequest)
+    try inputSource.configure(with: recognitionRequest)
   }
   
   private func stopRecognition() {
@@ -193,4 +193,5 @@ extension BLSpeechRecognizer: SFSpeechRecognizerDelegate {
 //      }
 //    }
 //  }
+
 

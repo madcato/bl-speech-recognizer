@@ -15,7 +15,7 @@ public enum InputSourceType {
 
 protocol InputSource {
   func initialize()
-  func configure(with recognitionRequest: SFSpeechAudioBufferRecognitionRequest?)
+  func configure(with recognitionRequest: SFSpeechAudioBufferRecognitionRequest?) throws
   func stop()
 }
 

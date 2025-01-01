@@ -46,4 +46,7 @@ extension ContinuousSpeechRecognizer: BLSpeechRecognizerDelegate {
   func speechRecognizer(available: Bool) {
     // TODO: send to client
   }
+  func speechRecognizer(error: any Error) {
+    // TODO: send to client
+  }
 }

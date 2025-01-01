@@ -15,21 +15,18 @@ class MicrophoneInputSource: InputSource {
     configureAudioSession()
   }
   
-  func configure(with recognitionRequest: SFSpeechAudioBufferRecognitionRequest?) {
+  func configure(with recognitionRequest: SFSpeechAudioBufferRecognitionRequest?) throws {
     let inputNode = audioEngine.inputNode
     if(inputNode.inputFormat(forBus: 0).channelCount == 0) {
-      fatalError("Not enough available inputs!")
+      throw SpeechRecognizerError.notAvailableInputs
     }
     let recordingFormat = inputNode.outputFormat(forBus: 0)  //11
     inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer, _) in
       recognitionRequest?.append(buffer)
     }
     audioEngine.prepare()  //12
-    do {
-      try audioEngine.start()
-    } catch {
-      fatalError("audioEngine couldn't start because of an error.")
-    }
+    
+    try audioEngine.start()
   }
   
   func stop() {

@@ -28,6 +28,7 @@ public class CommandSpeechRecognizer {
 }
 
 extension CommandSpeechRecognizer: BLSpeechRecognizerDelegate {
+  
   func recognized(text: String, isFinal: Bool) {
     // TODO: Accumulate the result and call completion only when isFinal
     completion(.success(text))
@@ -42,6 +43,10 @@ extension CommandSpeechRecognizer: BLSpeechRecognizerDelegate {
   }
   
   func speechRecognizer(available: Bool) {
+    // TODO: send to client
+  }
+  
+  func speechRecognizer(error: any Error) {
     // TODO: send to client
   }
 }

@@ -12,6 +12,7 @@ enum SpeechRecognizerError: Error {
   case recognitionRestricted
   case speechRecognizerNotAvailable
   case recognitionTaskUnable
+  case notAvailableInputs
   
   var message: String {
     switch self {
@@ -21,6 +22,7 @@ enum SpeechRecognizerError: Error {
     case .recognitionRestricted: return "The device prevents your app from performing speech recognition."
     case .speechRecognizerNotAvailable : return "Speech Recognition not available"
     case .recognitionTaskUnable : return "Unable to create an SFSpeechAudioBufferRecognitionRequest object"
+    case .notAvailableInputs: return "Not enough available inputs for microphone!"
     }
   }
 }
