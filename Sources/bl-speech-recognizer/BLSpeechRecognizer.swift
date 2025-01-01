@@ -89,6 +89,7 @@ final class BLSpeechRecognizer: NSObject {
     }
   }
   
+  @MainActor
   public func start() {
     self.speechRecognizer.delegate = self
     requestAuthorization { isOk in
@@ -114,6 +115,9 @@ final class BLSpeechRecognizer: NSObject {
   }
   
   private func startRecognition() throws {
+    guard Thread.isMainThread else {
+      fatalError("Must be called from main thread")
+    }
     recognitionRequest = SFSpeechAudioBufferRecognitionRequest()  //3
     guard let recognitionRequest = recognitionRequest else {
       throw SpeechRecognizerError.recognitionTaskUnable

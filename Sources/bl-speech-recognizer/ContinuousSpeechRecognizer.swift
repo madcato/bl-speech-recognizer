@@ -11,11 +11,12 @@ public class ContinuousSpeechRecognizer {
   private var speechRecognizer: BLSpeechRecognizer!
   private var completion: ((Result<String, Error>) -> Void)!
   
-  public func start(inputType: InputSourceType, completion: @escaping (Result<String, Error>) -> Void) {
+  @MainActor
+  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping (Result<String, Error>) -> Void) {
     self.completion = completion
     let inputSource = InputSourceFactory.create(inputSource: inputType)
     do {
-      speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, task: .dictation)
+      speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, task: .dictation)
       speechRecognizer.delegate = self
       speechRecognizer.start()
     } catch {

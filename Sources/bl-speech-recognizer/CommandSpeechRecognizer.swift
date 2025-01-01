@@ -5,15 +5,18 @@
 //  Created by Daniel Vela on 31/12/24.
 //
 
+import Foundation
+
 public class CommandSpeechRecognizer {
   private var speechRecognizer: BLSpeechRecognizer!
   private var completion: ((Result<String, Error>) -> Void)!
   
-  public func start(inputType: InputSourceType, completion: @escaping (Result<String, Error>) -> Void) {
+  @MainActor
+  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping (Result<String, Error>) -> Void) {
     self.completion = completion
     let inputSource = InputSourceFactory.create(inputSource: inputType)
     do {
-      speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, task:.query)
+      speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, task:.query)
       speechRecognizer.delegate = self
       speechRecognizer.start()
     } catch {
