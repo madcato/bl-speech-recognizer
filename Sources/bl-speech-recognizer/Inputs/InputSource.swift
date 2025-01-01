@@ -7,13 +7,19 @@
 
 import Speech
 
-// Enum representing different input source types for speech recognition
+/**
+ Represents the type of input source for speech recognition.
+
+ - Cases:
+   - microphone: Indicates that the input source is a live audio stream from a microphone.
+   - audioFile(URL): Represents an input source that is an audio file located at a specified URL.
+   - customStream: Indicates a custom input stream, which may be used for more advanced or specialized input scenarios.
+ */
 public enum InputSourceType {
   case microphone
   case audioFile(URL)
   case customStream
 }
-
 // Protocol defining the operations for an input source
 protocol InputSource {
   /// Initializes the input source, preparing it for usage.
