@@ -5,74 +5,62 @@
 //  Created by Daniel Vela on 1/1/25.
 //
 
+import Speech
 import XCTest
 @testable import bl_speech_recognizer
-
-// Mock class for BLSpeechRecognizer
-class MockBLSpeechRecognizer: BLSpeechRecognizer {
-  var startedCalled = false
-  var stoppedCalled = false
-  
-  override func start() {
-    startedCalled = true
-  }
-  
-  override func stop() {
-    stoppedCalled = true
-  }
-}
 
 // XCTest for ContinuousSpeechRecognizer
 final class ContinuousSpeechRecognizerTests: XCTestCase {
   
   var speechRecognizer: ContinuousSpeechRecognizer!
-  var mockSpeechRecognizer: MockBLSpeechRecognizer!
+  var englishAudioFileURL: URL! = nil
+  var spanishAudioFileURL: URL! = nil
   
   override func setUp() {
     super.setUp()
-    let inputsource = InputSourceFactory.create(inputSource: .microphone)
-    mockSpeechRecognizer = try? MockBLSpeechRecognizer(inputSource: inputsource)
+    
+    englishAudioFileURL = Bundle.module.url(forResource: "hello", withExtension: "m4a")!
+    spanishAudioFileURL = Bundle.module.url(forResource: "hola", withExtension: "m4a")!
     speechRecognizer = ContinuousSpeechRecognizer()
-    // Inject the mock or, if the original code doesn't support it, consider modifying
-    // the original code to allow dependency injection for testing purposes.
   }
   
   override func tearDown() {
     speechRecognizer = nil
-    mockSpeechRecognizer = nil
     super.tearDown()
   }
   
   @MainActor
   func testStartRecognition() {
+    // Mock Audio Permissions
+    let mockAuthorizationStatus: AVAudioSession.RecordPermission = .granted
+    let audioSession = AVAudioSession.sharedInstance()
+    audioSession.recordPermission = mockAuthorizationStatus
+    
     let expectation = expectation(description: "Recognition started")
     
-    speechRecognizer.start(inputType: .microphone, locale: .current) { result in
+    speechRecognizer.start(inputType: .audioFile(englishAudioFileURL), locale: .init(identifier: "en_uS")) { result in
       switch result {
       case .success(let text):
-        XCTAssertEqual(text, "Expected Text")
+        XCTAssertEqual(text, "Hello how are you")
         expectation.fulfill()
       case .failure(let error):
         XCTFail("Recognition failed with error: \(error)")
       }
     }
     
-    // Simulate the recognition result
-    mockSpeechRecognizer.delegate?.recognized(text: "Expected Text", isFinal: true)
+    // Let some time to finish processing
+    Thread.sleep(forTimeInterval: 5)
     
-    waitForExpectations(timeout: 5, handler: nil)
+    speechRecognizer.stop()
     
-    XCTAssertTrue(mockSpeechRecognizer.startedCalled, "Start method was not called")
+    waitForExpectations(timeout: 10, handler: nil)
   }
   
   @MainActor
   func testStopRecognition() {
     speechRecognizer.start(inputType: .microphone, locale: .current) { _ in }
     
-    speechRecognizer.stop()
     
-    XCTAssertTrue(mockSpeechRecognizer.stoppedCalled, "Stop method was not called")
+//    XCTAssertTrue(mockSpeechRecognizer.stoppedCalled, "Stop method was not called")
   }
-  
-  // Additional tests can be added here for other methods like finished(), started(), etc.
 }

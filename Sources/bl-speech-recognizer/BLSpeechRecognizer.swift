@@ -19,7 +19,7 @@ protocol BLSpeechRecognizerDelegate: AnyObject {
   /// Called when the speech recognition has finished.
   func finished()
   /// Called when the availability of the speech recognizer changes.
-  /// 
+  ///
   /// - Parameter available: Boolean indicating if the recognizer is available.
   func speechRecognizer(available: Bool)
   /// Called when an error occurs during speech recognition.
@@ -58,7 +58,7 @@ final class BLSpeechRecognizer: NSObject {
   let speechRecognizer: SFSpeechRecognizer!
   
   /// Request input object
-  private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+  private var recognitionRequest: SFSpeechRecognitionRequest?
   /// Recognizing task object
   private var recognitionTask: SFSpeechRecognitionTask?
   /// Timer used to stop reconging task after some inactivity period
@@ -111,8 +111,15 @@ final class BLSpeechRecognizer: NSObject {
         guard self.speechRecognizer.isAvailable else {
           throw SpeechRecognizerError.speechRecognizerNotAvailable
         }
-        self.inputSource.initialize()
-        try self.startRecognition()
+        
+        DispatchQueue.main.async {
+          do{
+            try self.startRecognition()
+          } catch {
+            self.delegate?.speechRecognizer(error: error)
+          }
+        }
+        
       case .failure(let error):
         throw error
       }
@@ -124,15 +131,12 @@ final class BLSpeechRecognizer: NSObject {
     stopRecognition()
   }
   
-  public func processAudio(_ audioBuffer: AVAudioPCMBuffer) {
-    recognitionRequest?.append(audioBuffer)
-  }
-  
+  @MainActor
   private func startRecognition() throws {
     guard Thread.isMainThread else {
       fatalError("Must be called from main thread")
     }
-    recognitionRequest = SFSpeechAudioBufferRecognitionRequest()  //3
+    recognitionRequest = try self.inputSource.initialize()  //3
     guard let recognitionRequest = recognitionRequest else {
       throw SpeechRecognizerError.recognitionTaskUnable
     } //5
@@ -174,22 +178,17 @@ final class BLSpeechRecognizer: NSObject {
       }
     }
     )
-    try inputSource.configure(with: recognitionRequest)
   }
   
   private func stopRecognition() {
     recognitionTask?.cancel()
     recognitionTask = nil
-    
     inputSource.stop()
-    
-    recognitionRequest?.endAudio()
     recognitionRequest = nil
   }
   
   private func clean() {
     inputSource.stop()
-    recognitionRequest?.endAudio()
     recognitionRequest = nil
     recognitionTask?.cancel()
     recognitionTask = nil

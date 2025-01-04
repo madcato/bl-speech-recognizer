@@ -17,6 +17,8 @@ public class ContinuousSpeechRecognizer {
   // Closure to be called upon completion with the recognition result or an error.
   private var completion: ((Result<String, Error>) -> Void)!
   
+  public init() {}
+  
   /// Starts the speech recognition process.
   ///
   /// - Parameters:

@@ -13,15 +13,13 @@ class MicrophoneInputSource: InputSource {
   /// Audio Engine to receive data from the microphone
   private let audioEngine: AVAudioEngine = AVAudioEngine()
   
-  /// Initializes the microphone input by configuring the audio session.
-  func initialize() {
-    configureAudioSession()
-  }
+  private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest? = nil
   
-  /// Configures the audio engine with the given speech recognition request.
-  /// - Parameter recognitionRequest: The recognition request that will receive audio buffers.
-  /// - Throws: `SpeechRecognizerError.notAvailableInputs` if no audio inputs are available.
-  func configure(with recognitionRequest: SFSpeechAudioBufferRecognitionRequest?) throws {
+  /// Initializes the microphone input by configuring the audio session.
+  func initialize() throws -> SFSpeechRecognitionRequest? {
+    configureAudioSession()
+    
+    self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     let inputNode = audioEngine.inputNode
     
     /// Check if the input node can provide audio data
@@ -31,16 +29,20 @@ class MicrophoneInputSource: InputSource {
     /// Set up the format for recording and add a tap to the audio engine's input node
     let recordingFormat = inputNode.outputFormat(forBus: 0)  // 11
     inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer, _) in
-      recognitionRequest?.append(buffer)
+      self.recognitionRequest?.append(buffer)
     }
 
     /// Prepare and start the audio engine
     audioEngine.prepare()  // 12
     try audioEngine.start()
+    
+    return recognitionRequest
   }
   
   /// Stops the audio engine and removes any installed taps.
   func stop() {
+    recognitionRequest?.endAudio()
+    recognitionRequest = nil
     audioEngine.stop()
     audioEngine.inputNode.removeTap(onBus: 0)
     audioEngine.inputNode.reset()

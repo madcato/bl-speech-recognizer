@@ -23,16 +23,8 @@ public enum InputSourceType {
 // Protocol defining the operations for an input source
 protocol InputSource {
   /// Initializes the input source, preparing it for usage.
-  func initialize()
-  
-  /**
-   Configures the input source with a given speech audio buffer recognition request.
-   
-   - Parameter recognitionRequest: An optional SFSpeechAudioBufferRecognitionRequest to configure the input source with.
-   
-   - Throws: An error if configuration fails.
-   */
-  func configure(with recognitionRequest: SFSpeechAudioBufferRecognitionRequest?) throws
+  /// Must return a SFSpeechRecognitionRequest object.
+  func initialize() throws -> SFSpeechRecognitionRequest?
   
   /// Stops the input source, ceasing its operation.
   func stop()
@@ -53,7 +45,7 @@ class InputSourceFactory {
     case .microphone:
       return MicrophoneInputSource()  // Returns an instance of a microphone input source
     case .audioFile(let url):
-      return FileInput(url: url)      // Returns an instance for audio file input with the specified URL
+      return AudioFileInput(url: url)      // Returns an instance for audio file input with the specified URL
     case .customStream:
       return CustomInputSource()      // Returns an instance of a custom input stream
     }

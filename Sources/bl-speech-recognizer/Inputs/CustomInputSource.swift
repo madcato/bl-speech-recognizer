@@ -8,11 +8,15 @@
 import Speech
 
 class CustomInputSource: InputSource {
-  func initialize() {
+  func initialize() throws -> SFSpeechRecognitionRequest? {
+//    public func processAudio(_ audioBuffer: AVAudioPCMBuffer) {
+//      recognitionRequest?.append(audioBuffer)
+//    }
+//    
+    return nil
   }
-
-  func configure(with recognitionRequest: SFSpeechAudioBufferRecognitionRequest?) {
-    
+  
+  func configure(with recognitionRequest: SFSpeechRecognitionRequest?) throws {
   }
 
   func stop() {

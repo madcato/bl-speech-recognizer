@@ -15,10 +15,15 @@ let package = Package(
     // Targets are the basic building blocks of a package, defining a module or a test suite.
     // Targets can depend on other targets in this package and products from dependencies.
     .target(
-      name: "bl-speech-recognizer"),
+      name: "bl-speech-recognizer"
+    ),
     .testTarget(
       name: "bl-speech-recognizerTests",
-      dependencies: ["bl-speech-recognizer"]
+      dependencies: ["bl-speech-recognizer"],
+      resources: [
+        .process("Resources/hello.m4a"),
+        .process("Resources/hola.m4a")
+      ]
     ),
   ]
 )

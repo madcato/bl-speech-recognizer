@@ -1,5 +1,5 @@
 //
-//  FileInput.swift
+//  AudioFileInput.swift
 //  bl-speech-recognizer
 //
 //  Created by Daniel Vela on 1/1/25.
@@ -7,19 +7,17 @@
 
 import Speech
 
-class FileInput: InputSource {
+class AudioFileInput: InputSource {
   private let fileURL: URL
   
   init(url: URL) {
     self.fileURL = url
   }
 
-  func initialize() {
+  func initialize() throws -> SFSpeechRecognitionRequest? {
+    return SFSpeechURLRecognitionRequest(url: fileURL)
   }
-  
-  func configure(with recognitionRequest: SFSpeechAudioBufferRecognitionRequest?) {
-  }
-  
+
   func stop() {
   }
   
