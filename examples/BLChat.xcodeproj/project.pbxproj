@@ -11,7 +11,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		0BDDB55E2D293EF000559E11 /* PBXContainerItemProxy */ = {
+		0B4E320A2D3279D400422C22 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0BDDB5442D293EEF00559E11 /* Project object */;
 			proxyType = 1;
@@ -28,30 +28,21 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0B4E31F12D32793500422C22 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		0B4E32062D3279D400422C22 /* BLChatTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BLChatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BDDB54C2D293EEF00559E11 /* BLChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BLChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		0BDDB55D2D293EF000559E11 /* BLChatTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BLChatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BDDB5672D293EF000559E11 /* BLChatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BLChatUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		0BDDB5AE2D29400300559E11 /* Exceptions for "BLChatTests" folder in "BLChat" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				BLChatTests.swift,
-			);
-			target = 0BDDB54B2D293EEF00559E11 /* BLChat */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		0B4E32072D3279D400422C22 /* BLChatTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BLChatTests;
+			sourceTree = "<group>";
+		};
 		0BDDB54E2D293EEF00559E11 /* BLChat */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = BLChat;
-			sourceTree = "<group>";
-		};
-		0BDDB5602D293EF000559E11 /* BLChatTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BLChatTests;
 			sourceTree = "<group>";
 		};
 		0BDDB56A2D293EF000559E11 /* BLChatUITests */ = {
@@ -59,34 +50,21 @@
 			path = BLChatUITests;
 			sourceTree = "<group>";
 		};
-		0BDDB5A72D29400200559E11 /* BLChatTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				0BDDB5AE2D29400300559E11 /* Exceptions for "BLChatTests" folder in "BLChat" target */,
-			);
-			path = BLChatTests;
-			sourceTree = "<group>";
-		};
-		0BDDB5AA2D29400200559E11 /* BLChatUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BLChatUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		0B4E32032D3279D400422C22 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0BDDB5492D293EEF00559E11 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				0BC4AD072D2944330095538C /* bl-speech-recognizer in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0BDDB55A2D293EF000559E11 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,15 +78,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0B4E31F02D32793500422C22 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0B4E31F12D32793500422C22 /* XCTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		0BDDB5432D293EEF00559E11 = {
 			isa = PBXGroup;
 			children = (
 				0BDDB54E2D293EEF00559E11 /* BLChat */,
-				0BDDB5602D293EF000559E11 /* BLChatTests */,
 				0BDDB56A2D293EF000559E11 /* BLChatUITests */,
+				0B4E32072D3279D400422C22 /* BLChatTests */,
 				0BDDB54D2D293EEF00559E11 /* Products */,
-				0BDDB5A72D29400200559E11 /* BLChatTests */,
-				0BDDB5AA2D29400200559E11 /* BLChatUITests */,
+				0B4E31F02D32793500422C22 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -116,8 +101,8 @@
 			isa = PBXGroup;
 			children = (
 				0BDDB54C2D293EEF00559E11 /* BLChat.app */,
-				0BDDB55D2D293EF000559E11 /* BLChatTests.xctest */,
 				0BDDB5672D293EF000559E11 /* BLChatUITests.xctest */,
+				0B4E32062D3279D400422C22 /* BLChatTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -125,6 +110,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0B4E32052D3279D400422C22 /* BLChatTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0B4E320C2D3279D400422C22 /* Build configuration list for PBXNativeTarget "BLChatTests" */;
+			buildPhases = (
+				0B4E32022D3279D400422C22 /* Sources */,
+				0B4E32032D3279D400422C22 /* Frameworks */,
+				0B4E32042D3279D400422C22 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0B4E320B2D3279D400422C22 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0B4E32072D3279D400422C22 /* BLChatTests */,
+			);
+			name = BLChatTests;
+			packageProductDependencies = (
+			);
+			productName = BLChatTests;
+			productReference = 0B4E32062D3279D400422C22 /* BLChatTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		0BDDB54B2D293EEF00559E11 /* BLChat */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0BDDB5712D293EF000559E11 /* Build configuration list for PBXNativeTarget "BLChat" */;
@@ -139,7 +147,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				0BDDB54E2D293EEF00559E11 /* BLChat */,
-				0BDDB5AA2D29400200559E11 /* BLChatUITests */,
 			);
 			name = BLChat;
 			packageProductDependencies = (
@@ -148,29 +155,6 @@
 			productName = BLChat;
 			productReference = 0BDDB54C2D293EEF00559E11 /* BLChat.app */;
 			productType = "com.apple.product-type.application";
-		};
-		0BDDB55C2D293EF000559E11 /* BLChatTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 0BDDB5742D293EF000559E11 /* Build configuration list for PBXNativeTarget "BLChatTests" */;
-			buildPhases = (
-				0BDDB5592D293EF000559E11 /* Sources */,
-				0BDDB55A2D293EF000559E11 /* Frameworks */,
-				0BDDB55B2D293EF000559E11 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				0BDDB55F2D293EF000559E11 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				0BDDB5602D293EF000559E11 /* BLChatTests */,
-			);
-			name = BLChatTests;
-			packageProductDependencies = (
-			);
-			productName = BLChatTests;
-			productReference = 0BDDB55D2D293EF000559E11 /* BLChatTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		0BDDB5662D293EF000559E11 /* BLChatUITests */ = {
 			isa = PBXNativeTarget;
@@ -205,12 +189,12 @@
 				LastSwiftUpdateCheck = 1610;
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
-					0BDDB54B2D293EEF00559E11 = {
-						CreatedOnToolsVersion = 16.1;
-					};
-					0BDDB55C2D293EF000559E11 = {
+					0B4E32052D3279D400422C22 = {
 						CreatedOnToolsVersion = 16.1;
 						TestTargetID = 0BDDB54B2D293EEF00559E11;
+					};
+					0BDDB54B2D293EEF00559E11 = {
+						CreatedOnToolsVersion = 16.1;
 					};
 					0BDDB5662D293EF000559E11 = {
 						CreatedOnToolsVersion = 16.1;
@@ -236,21 +220,21 @@
 			projectRoot = "";
 			targets = (
 				0BDDB54B2D293EEF00559E11 /* BLChat */,
-				0BDDB55C2D293EF000559E11 /* BLChatTests */,
 				0BDDB5662D293EF000559E11 /* BLChatUITests */,
+				0B4E32052D3279D400422C22 /* BLChatTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		0BDDB54A2D293EEF00559E11 /* Resources */ = {
+		0B4E32042D3279D400422C22 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0BDDB55B2D293EF000559E11 /* Resources */ = {
+		0BDDB54A2D293EEF00559E11 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -267,14 +251,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		0BDDB5482D293EEF00559E11 /* Sources */ = {
+		0B4E32022D3279D400422C22 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0BDDB5592D293EF000559E11 /* Sources */ = {
+		0BDDB5482D293EEF00559E11 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -291,10 +275,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		0BDDB55F2D293EF000559E11 /* PBXTargetDependency */ = {
+		0B4E320B2D3279D400422C22 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 0BDDB54B2D293EEF00559E11 /* BLChat */;
-			targetProxy = 0BDDB55E2D293EF000559E11 /* PBXContainerItemProxy */;
+			targetProxy = 0B4E320A2D3279D400422C22 /* PBXContainerItemProxy */;
 		};
 		0BDDB5692D293EF000559E11 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -304,6 +288,47 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		0B4E320D2D3279D400422C22 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TW65EXAM4U;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.veladan.BLChatTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BLChat.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BLChat";
+			};
+			name = Debug;
+		};
+		0B4E320E2D3279D400422C22 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TW65EXAM4U;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.veladan.BLChatTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BLChat.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BLChat";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		0BDDB56F2D293EF000559E11 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -500,52 +525,6 @@
 			};
 			name = Release;
 		};
-		0BDDB5752D293EF000559E11 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TW65EXAM4U;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
-				MACOSX_DEPLOYMENT_TARGET = 15.1;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.veladan.BLChatTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BLChat.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BLChat";
-				XROS_DEPLOYMENT_TARGET = 2.1;
-			};
-			name = Debug;
-		};
-		0BDDB5762D293EF000559E11 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = TW65EXAM4U;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
-				MACOSX_DEPLOYMENT_TARGET = 15.1;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.veladan.BLChatTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BLChat.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BLChat";
-				XROS_DEPLOYMENT_TARGET = 2.1;
-			};
-			name = Release;
-		};
 		0BDDB5782D293EF000559E11 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -593,6 +572,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0B4E320C2D3279D400422C22 /* Build configuration list for PBXNativeTarget "BLChatTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0B4E320D2D3279D400422C22 /* Debug */,
+				0B4E320E2D3279D400422C22 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		0BDDB5472D293EEF00559E11 /* Build configuration list for PBXProject "BLChat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -607,15 +595,6 @@
 			buildConfigurations = (
 				0BDDB5722D293EF000559E11 /* Debug */,
 				0BDDB5732D293EF000559E11 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		0BDDB5742D293EF000559E11 /* Build configuration list for PBXNativeTarget "BLChatTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				0BDDB5752D293EF000559E11 /* Debug */,
-				0BDDB5762D293EF000559E11 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
