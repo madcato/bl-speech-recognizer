@@ -19,9 +19,15 @@ Add [NSSpeechRecognitionUsageDescription](https://developer.apple.com/documentat
 ## Mermaid sample
 
 ```mermaid
-  graph TD;
-      A-->B;
-      A-->C;
-      B-->D;
-      C-->D;
+sequenceDiagram
+    App->>bl-speech-recognizer: start()
+    User-->>bl-speech-recognizer: "Hello"
+    bl-speech-recognizer->>: recognized("Hello")
+    User-->>bl-speech-recognizer: "Hello"
+    bl-speech-recognizer->>: recognized("Hello")
+    User-->>bl-speech-recognizer: "Hello"
+    bl-speech-recognizer->>: recognized("Hello")
+    User-->>bl-speech-recognizer: "Hello"
+    bl-speech-recognizer->>: recognized("Hello")
+    App->>bl-speech-recognizer: stop()
 ```
