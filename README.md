@@ -15,3 +15,13 @@ Add [NSSpeechRecognitionUsageDescription](https://developer.apple.com/documentat
 - Sample code: [Recognizing speech in live audio](https://developer.apple.com/documentation/speech/recognizing-speech-in-live-audio)
 - Framework:[Speech](https://developer.apple.com/documentation/speech)
 - Article: [Asking Permission to Use Speech Recognition](https://developer.apple.com/documentation/speech/asking-permission-to-use-speech-recognition)
+
+## Mermaid sample
+
+```mermaid
+  graph TD;
+      A-->B;
+      A-->C;
+      B-->D;
+      C-->D;
+```
