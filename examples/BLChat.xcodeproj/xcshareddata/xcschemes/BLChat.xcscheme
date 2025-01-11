@@ -35,7 +35,7 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "0BDDB55C2D293EF000559E11"
+               BlueprintIdentifier = "0B4E32052D3279D400422C22"
                BuildableName = "BLChatTests.xctest"
                BlueprintName = "BLChatTests"
                ReferencedContainer = "container:BLChat.xcodeproj">

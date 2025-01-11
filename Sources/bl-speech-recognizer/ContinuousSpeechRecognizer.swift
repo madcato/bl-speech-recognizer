@@ -44,8 +44,6 @@ public class ContinuousSpeechRecognizer {
   /// Stops the speech recognition process and cleans up resources.
   @MainActor
   public func stop() {
-    // Detaches the delegate to prevent further callbacks.
-    speechRecognizer.delegate = nil
     // Stops the recognition process.
     speechRecognizer.stop()
   }

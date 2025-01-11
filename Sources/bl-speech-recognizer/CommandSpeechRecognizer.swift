@@ -7,14 +7,16 @@
 
 import Foundation
 
-/// A speech recognizer that handles voice commands using a specific input source and locale.
-public class CommandSpeechRecognizer {
+/// A speech recognizer that handles voice commands using a specific input source and locale
+public class CommandSpeechRecognizer: @unchecked Sendable {
   
   /// The speech recognizer instance that processes the audio input.
   private var speechRecognizer: BLSpeechRecognizer!
   
   /// A closure that handles the result of the speech recognition, providing a success with the recognized text or a failure with an error.
   private var completion: ((Result<String, Error>) -> Void)!
+
+  private var recognitionTimer: Timer? // Timer to track inactivity
   
   /// Starts the speech recognition process with a given input source type and locale.
   /// - Parameters:
@@ -48,20 +50,30 @@ public class CommandSpeechRecognizer {
   /// It also removes itself as a delegate from the speech recognizer.
   @MainActor
   public func stop() {
-    // Remove the delegate to stop receiving events.
-    speechRecognizer.delegate = nil
-    
     // Stop the speech recognizer.
     speechRecognizer.stop()
+    recognitionTimer?.invalidate() // Invalidate the timer when stopping
   }
 }
 
 extension CommandSpeechRecognizer: BLSpeechRecognizerDelegate {
   
   func recognized(text: String, isFinal: Bool) {
-    // TODO: Accumulate the result and call completion only when isFinal
-    completion(.success(text))
+    // Append the newly recognized text
+    if isFinal {
+      self.completion(.success(text))
+    }
+    
+    // Reset and start the timer
+    recognitionTimer?.invalidate()
+    recognitionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
+      guard let self = self else { return }
+      DispatchQueue.main.async {
+        self.stop()
+      }
+    }
   }
+  
   
   func started() {
     // TODO: send to client

@@ -61,8 +61,6 @@ final class BLSpeechRecognizer: NSObject {
   private var recognitionRequest: SFSpeechRecognitionRequest?
   /// Recognizing task object
   private var recognitionTask: SFSpeechRecognitionTask?
-  /// Timer used to stop reconging task after some inactivity period
-  private var timer: Timer?
   /// time to wait
   private let waitTime: Double!
   /// type of regcognition task, default is unspeciified
@@ -119,7 +117,6 @@ final class BLSpeechRecognizer: NSObject {
             self.delegate?.speechRecognizer(error: error)
           }
         }
-        
       case .failure(let error):
         throw error
       }
@@ -166,15 +163,6 @@ final class BLSpeechRecognizer: NSObject {
       if let result = result {
         let transcription = result.bestTranscription
         self.delegate?.recognized(text: transcription.formattedString, isFinal: result.isFinal)
-        
-        if self.taskType != .dictation  {
-          self.timer?.invalidate()
-          if result.isFinal == false {
-            self.timer = Timer.scheduledTimer(withTimeInterval: self.waitTime, repeats: false, block: { timer in
-              //              self.pause()
-            })
-          }
-        }
       }
     }
     )
@@ -210,5 +198,4 @@ extension BLSpeechRecognizer: SFSpeechRecognizerDelegate {
 //      }
 //    }
 //  }
-
 
