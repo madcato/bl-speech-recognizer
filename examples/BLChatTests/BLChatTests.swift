@@ -48,9 +48,12 @@ final class ContinuousSpeechRecognizerTests: XCTestCase {
       }
     }
     
-    waitForExpectations(timeout: 10, handler: nil)
+    Thread.sleep(forTimeInterval: 3)
+    continuousSpeechRecognizer.stop()
+    
+    waitForExpectations(timeout: 5, handler: nil)
   }
-  
+   
   @MainActor
   func testStartCommandRecognitionWithAudioFileInput() {
     let expectation = self.expectation(description: "Recognition with audio file input started")
@@ -58,14 +61,16 @@ final class ContinuousSpeechRecognizerTests: XCTestCase {
     commandSpeechRecognizer.start(inputType: .audioFile(testEnglishAudioFileURL), locale: .init(identifier: "en_US")) { result in
       switch result {
       case .success(let text):
-        XCTAssertEqual(text, "Hello")  // Only returns the first recognition, because it returns the recognized text while continue recognizing
+        XCTAssertEqual(text, "Hello how are you")
         expectation.fulfill()
       case .failure(let error):
         XCTFail("Recognition failed with error: \(error)")
       }
     }
     
-    waitForExpectations(timeout: 10, handler: nil)
+    // In command recognition mode, speech recognition stops itself
+    
+    waitForExpectations(timeout: 5, handler: nil)
   }
   
   @MainActor
@@ -75,12 +80,15 @@ final class ContinuousSpeechRecognizerTests: XCTestCase {
     continuousSpeechRecognizer.start(inputType: .audioFile(testSpanishAudioFileURL), locale: .init(identifier: "es_ES")) { result in
       switch result {
       case .success(let text):
-        XCTAssertEqual(text, "Hola")
+        XCTAssertEqual(text, "Hola")  // Only returns the first recognition, because it returns the recognized text while continue recognizing
         expectation.fulfill()
       case .failure(let error):
         XCTFail("Recognition failed with error: \(error)")
       }
     }
+    
+    Thread.sleep(forTimeInterval: 3)
+    continuousSpeechRecognizer.stop()
     
     waitForExpectations(timeout: 10, handler: nil)
   }
@@ -92,12 +100,14 @@ final class ContinuousSpeechRecognizerTests: XCTestCase {
     commandSpeechRecognizer.start(inputType: .audioFile(testSpanishAudioFileURL), locale: .init(identifier: "es_ES")) { result in
       switch result {
       case .success(let text):
-        XCTAssertEqual(text, "Hola")
+        XCTAssertEqual(text, "Hola cómo estás")
         expectation.fulfill()
       case .failure(let error):
         XCTFail("Recognition failed with error: \(error)")
       }
     }
+    
+    // In command recognition mode, speech recognition stops itself
     
     waitForExpectations(timeout: 10, handler: nil)
   }

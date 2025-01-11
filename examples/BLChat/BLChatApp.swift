@@ -9,9 +9,37 @@ import SwiftUI
 
 @main
 struct BLChatApp: App {
-    var body: some Scene {
-        WindowGroup {
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+    }
+  }
+}
+
+struct ContentView: View {
+  var body: some View {
+    NavigationView {
+      TabView {
+        NavigationView {
           ContinuousSpeechRecognitionView()
         }
+        .tabItem {
+          Label("Continuous", systemImage: "waveform.circle")
+        }
+        NavigationView {
+          CommandSpeechRecognitionView()
+        }
+        .tabItem {
+          Label("Command", systemImage: "mic.circle")
+        }
+      }
     }
+  }
+}
+
+// MARK: - Preview
+struct SpeechRecognitionView_Previews: PreviewProvider {
+  static var previews: some View {
+    ContentView()
+  }
 }
