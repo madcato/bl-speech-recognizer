@@ -35,7 +35,6 @@ class CommandSpeechRecognitionViewModel: ObservableObject {
         self.showError(error.localizedDescription)
       }
     }
-    
   }
   
   @MainActor

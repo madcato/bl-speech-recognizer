@@ -16,6 +16,71 @@ Add [NSSpeechRecognitionUsageDescription](https://developer.apple.com/documentat
 - Framework:[Speech](https://developer.apple.com/documentation/speech)
 - Article: [Asking Permission to Use Speech Recognition](https://developer.apple.com/documentation/speech/asking-permission-to-use-speech-recognition)
 
+## Sample usage
+
+See [Example app](./examples) to learn how to use the library.
+
+### Continouos speech recognition
+
+```swift
+import bl_speech_recognizer
+
+class YourClassViewModel: ObservableObject { 
+    // ... your properties
+    private var speechRecognizer = ContinuousSpeechRecognizer()
+    
+    @MainActor
+    func startRecording() {
+        isRecording = true
+    
+        speechRecognizer.start(inputType: .microphone, locale: .current) { result in
+            switch result {
+            case .success(let text):
+                self.recognizedText = text
+            case .failure(let error):
+                self.showError(error.localizedDescription)
+            }
+        }
+    }
+
+    @MainActor
+    func stopRecording() {
+        isRecording = false
+        speechRecognizer.stop()
+    }
+}
+```
+
+You need to stop recognition by calling `stop()` on the recognizer.
+
+### Command speech recognition
+
+```swift
+import bl_speech_recognizer
+
+class YourClassViewModel: ObservableObject { 
+    // ... your properties
+
+    private var speechRecognizer = CommandSpeechRecognizer()
+
+    @MainActor
+    func startRecording() {
+        isRecording = true
+        speechRecognizer.start(inputType: .microphone, locale: .current) { result in
+            switch result {
+            case .success(let text):
+                self.recognizedText = text
+                self.isRecording = false
+            case .failure(let error):
+                self.showError(error.localizedDescription)
+            }
+        }
+    }
+}
+```
+
+You don't need to stop recognition, because the **CommandSpeechRecognizer** will do it. But you can add it to allow user to stop it.
+
 ## Use cases sequence diagrams
 
 ### Continuous recognition
@@ -23,6 +88,7 @@ Add [NSSpeechRecognitionUsageDescription](https://developer.apple.com/documentat
 ```mermaid
 sequenceDiagram
     App->>bl-speech-recognizer: start()
+    actor User
     User-->>bl-speech-recognizer: "Hello"
     bl-speech-recognizer->>App: recognized("Hello")
     User-->>bl-speech-recognizer: "how"
@@ -39,6 +105,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     App->>bl-speech-recognizer: start()
+    actor User
     User-->>bl-speech-recognizer: "Delete"
     User-->>bl-speech-recognizer: "all"
     User-->>bl-speech-recognizer: "files"

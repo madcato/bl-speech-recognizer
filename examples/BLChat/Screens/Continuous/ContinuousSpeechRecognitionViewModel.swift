@@ -29,7 +29,6 @@ class ContinuousSpeechRecognitionViewModel: ObservableObject {
         self.showError(error.localizedDescription)
       }
     }
-    
   }
   
   @MainActor
