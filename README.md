@@ -113,3 +113,15 @@ sequenceDiagram
     bl-speech-recognizer->>App: recognized("Delete all files")
     bl-speech-recognizer->>bl-speech-recognizer: stop()
 ```
+
+## StackOverflow useful links
+
+- [How can I specify the format of AVAudioEngine Mic-Input?](https://stackoverflow.com/questions/33484140/how-can-i-specify-the-format-of-avaudioengine-mic-input)
+- [ios speech recognition Error Domain=kAFAssistantErrorDomain Code=216 "(null)"](https://stackoverflow.com/questions/44767316/ios-speech-recognition-error-domain-kafassistanterrordomain-code-216-null)
+- [Is there a way to use iOS speech recognition in offline mode?](https://stackoverflow.com/questions/42900254/is-there-a-way-to-use-ios-speech-recognition-in-offline-mode)
+- [Speech Recognition got an error on iOS](https://stackoverflow.com/questions/39927727/speech-recognition-got-an-error-on-ios)
+- [iOS 10.0 Speech Recognition Error kAFAssistantErrorDomain](https://stackoverflow.com/questions/37805891/ios-10-0-speech-recognition-error-kafassistanterrordomain)
+- [SFSpeechRecognizer on MacOS not available despite successful authorization](https://stackoverflow.com/questions/59920660/sfspeechrecognizer-on-macos-not-available-despite-successful-authorization/76836073#76836073)
+- [SFSpeechRecognizer is not available](https://stackoverflow.com/questions/39741938/sfspeechrecognizer-is-not-available)
+- [SFspeechRecognizer recognize speech more than one minutes in ios 15?](https://stackoverflow.com/questions/72306390/sfspeechrecognizer-recognize-speech-more-than-one-minutes-in-ios-15)
+- [SFSpeechRecognizer isn't working properly in IOS 13.2](https://stackoverflow.com/questions/58673072/sfspeechrecognizer-isnt-working-properly-in-ios-13-2)
