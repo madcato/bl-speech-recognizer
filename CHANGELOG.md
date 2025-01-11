@@ -14,5 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 
-Sample future release
-## [1.1.1] - 2023-03-05
+## [0.1.0] - 2025-01-11
+
+### Added
+- Continuous speech recognition functionality.
+- Test case for continuous recognition.
+- Example app demonstrating the use of the recognizer.
