@@ -18,6 +18,10 @@ public class CommandSpeechRecognizer: @unchecked Sendable {
 
   private var recognitionTimer: Timer? // Timer to track inactivity
   
+  private var lastRecognizedText: String = ""
+  
+  public init() {}
+  
   /// Starts the speech recognition process with a given input source type and locale.
   /// - Parameters:
   ///   - inputType: The type of input source to be used for speech recognition.
@@ -26,7 +30,7 @@ public class CommandSpeechRecognizer: @unchecked Sendable {
   @MainActor
   public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping (Result<String, Error>) -> Void) {
     self.completion = completion
-    
+    lastRecognizedText = ""
     // Create an input source based on the provided input type.
     let inputSource = InputSourceFactory.create(inputSource: inputType)
     
@@ -61,9 +65,9 @@ extension CommandSpeechRecognizer: BLSpeechRecognizerDelegate {
   func recognized(text: String, isFinal: Bool) {
     // Append the newly recognized text
     if isFinal {
-      self.completion(.success(text))
+      self.completion(.success(lastRecognizedText))
     }
-    
+    lastRecognizedText = text
     // Reset and start the timer
     recognitionTimer?.invalidate()
     recognitionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in

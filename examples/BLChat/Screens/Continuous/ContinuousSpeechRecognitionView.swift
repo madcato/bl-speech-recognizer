@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  ContinuousSpeechRecognitionView.swift
 //  BLChat
 //
 //  Created by Daniel Vela on 4/1/25.
@@ -27,7 +27,7 @@ struct ContinuousSpeechRecognitionView: View {
       }
       
       Spacer()
-
+      
       // Record Button
       Button(action: {
         if viewModel.isRecording {
@@ -49,11 +49,12 @@ struct ContinuousSpeechRecognitionView: View {
       }
       .padding()
     }
+    .navigationTitle("Continuous")
   }
 }
 
 // MARK: - Preview
-struct SpeechRecognitionView_Previews: PreviewProvider {
+struct ContinuousSpeechRecognitionView_Previews: PreviewProvider {
   static var previews: some View {
     ContinuousSpeechRecognitionView()
   }
