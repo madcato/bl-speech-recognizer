@@ -16,18 +16,33 @@ Add [NSSpeechRecognitionUsageDescription](https://developer.apple.com/documentat
 - Framework:[Speech](https://developer.apple.com/documentation/speech)
 - Article: [Asking Permission to Use Speech Recognition](https://developer.apple.com/documentation/speech/asking-permission-to-use-speech-recognition)
 
-## Mermaid sample
+## Use cases sequence diagrams
+
+### Continuous recognition
 
 ```mermaid
 sequenceDiagram
     App->>bl-speech-recognizer: start()
     User-->>bl-speech-recognizer: "Hello"
-    bl-speech-recognizer->>: recognized("Hello")
-    User-->>bl-speech-recognizer: "Hello"
-    bl-speech-recognizer->>: recognized("Hello")
-    User-->>bl-speech-recognizer: "Hello"
-    bl-speech-recognizer->>: recognized("Hello")
-    User-->>bl-speech-recognizer: "Hello"
-    bl-speech-recognizer->>: recognized("Hello")
+    bl-speech-recognizer->>App: recognized("Hello")
+    User-->>bl-speech-recognizer: "how"
+    bl-speech-recognizer->>App: recognized("Hello how")
+    User-->>bl-speech-recognizer: "are"
+    bl-speech-recognizer->>App: recognized("Hello how are")
+    User-->>bl-speech-recognizer: "you"
+    bl-speech-recognizer->>App: recognized("Hello how are you")
     App->>bl-speech-recognizer: stop()
+```
+
+### Command recognition
+
+```mermaid
+sequenceDiagram
+    App->>bl-speech-recognizer: start()
+    User-->>bl-speech-recognizer: "Delete"
+    User-->>bl-speech-recognizer: "all"
+    User-->>bl-speech-recognizer: "files"
+    User-->>bl-speech-recognizer: (One second without speech)
+    bl-speech-recognizer->>App: recognized("Delete all files")
+    bl-speech-recognizer->>bl-speech-recognizer: stop()
 ```
