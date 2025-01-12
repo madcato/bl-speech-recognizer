@@ -55,8 +55,9 @@ class MicrophoneInputSource: InputSource {
     let audioSession = AVAudioSession.sharedInstance()
     do {
       try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
-                                   mode: .spokenAudio,
+                                   mode: .videoChat,
                                    options: [.allowBluetoothA2DP, .allowBluetooth, .allowAirPlay, .defaultToSpeaker])
+//      try audioSession.setPreferredSampleRate(24000.0) // or 48000.0 depending on your needs
       try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
     } catch {
       // Logs an error if audio session properties can't be set

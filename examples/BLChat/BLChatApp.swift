@@ -32,6 +32,12 @@ struct ContentView: View {
         .tabItem {
           Label("Command", systemImage: "mic.circle")
         }
+        NavigationView {
+          InterrumpibleChatView()
+        }
+        .tabItem {
+          Label("Interrumpible", systemImage: "bubble.left")
+        }
       }
     }
   }

@@ -19,11 +19,7 @@ let package = Package(
     ),
     .testTarget(
       name: "bl-speech-recognizerTests",
-      dependencies: ["bl-speech-recognizer"],
-      resources: [
-        .process("Resources/hello.m4a"),
-        .process("Resources/hola.m4a")
-      ]
+      dependencies: ["bl-speech-recognizer"]
     ),
   ]
 )
