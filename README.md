@@ -114,6 +114,25 @@ sequenceDiagram
     bl-speech-recognizer->>bl-speech-recognizer: stop()
 ```
 
+### Interrumpible chat
+
+```mermaid
+sequenceDiagram
+    App->>bl-speech-recognizer: start()
+    App->>bl-speech-recognizer: synthesize("My name is Chatbot)
+    actor User
+    bl-speech-recognizer-->>User: "My"
+    bl-speech-recognizer-->>User: "name"
+    User-->>bl-speech-recognizer: "Delete"
+    bl-speech-recognizer->>bl-speech-recognizer:stopSynthesizing()
+    bl-speech-recognizer->>App: recognized("Delete")
+    User-->>bl-speech-recognizer: "all"
+    bl-speech-recognizer->>App: recognized("Delete all")
+    User-->>bl-speech-recognizer: "files"
+    bl-speech-recognizer->>App: recognized("Delete all files")
+    bl-speech-recognizer->>bl-speech-recognizer: stop()
+```
+
 ## StackOverflow useful links
 
 - [How can I specify the format of AVAudioEngine Mic-Input?](https://stackoverflow.com/questions/33484140/how-can-i-specify-the-format-of-avaudioengine-mic-input)
