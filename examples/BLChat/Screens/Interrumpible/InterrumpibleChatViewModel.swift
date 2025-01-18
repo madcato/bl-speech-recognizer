@@ -25,8 +25,8 @@ class InterrumpibleChatViewModel: ObservableObject {
     
     interrumpibleChat.start(inputType: .microphone, locale: .current) { result in
       switch result {
-      case .success(let text):
-        self.recognizedText = text
+      case .success(let completion):
+        self.recognizedText = completion.text
       case .failure(let error):
         self.showError(error.localizedDescription)
       }

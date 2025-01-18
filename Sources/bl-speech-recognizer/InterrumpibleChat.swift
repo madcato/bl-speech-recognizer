@@ -19,9 +19,14 @@ public class InterrumpibleChat {
   private var speechSynthesizer: BLSpeechSynthesizer!
   
   // Closure to be called upon completion with the recognition result or an error.
-  private var completion: ((Result<String, Error>) -> Void)!
+  private var completion: ((Result<InterrumpibleChat.Completion, Error>) -> Void)!
   
   public init() {}
+  
+  public struct Completion {
+    public let text: String
+    public let isFinal: Bool
+  }
   
   /// Starts the speech recognition process.
   ///
@@ -30,7 +35,7 @@ public class InterrumpibleChat {
   ///   - locale: The locale specifying language and regional settings, defaults to current locale.
   ///   - completion: A closure to be executed with the result of the recognition or an error.
   @MainActor
-  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping (Result<String, Error>) -> Void) {
+  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping (Result<InterrumpibleChat.Completion, Error>) -> Void) {
     self.completion = completion
     let inputSource = InputSourceFactory.create(inputSource: inputType)
     do {
@@ -73,7 +78,7 @@ public class InterrumpibleChat {
 extension InterrumpibleChat: @preconcurrency BLSpeechRecognizerDelegate {
   @MainActor func recognized(text: String, isFinal: Bool) {
     self.stopSynthesizing()
-    completion(.success(text))
+    completion(.success(.init(text: text, isFinal: isFinal) ))
   }
   
   func started() {
