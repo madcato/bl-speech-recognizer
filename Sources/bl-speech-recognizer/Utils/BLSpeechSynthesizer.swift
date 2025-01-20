@@ -41,7 +41,7 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
 
   private func internalSpeak() {
     guard synthesizer.isSpeaking == false else { return }
-    buffer.flush { text in
+    buffer.flush(all: isFinished) { text in
       let utterance = AVSpeechUtterance(string: text)
       utterance.voice = AVSpeechSynthesisVoice(language: language)
       synthesizer.delegate = self

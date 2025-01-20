@@ -114,7 +114,7 @@ sequenceDiagram
     bl-speech-recognizer->>bl-speech-recognizer: stop()
 ```
 
-### Interrumpible chat
+### Interruptible chat
 
 ```mermaid
 sequenceDiagram

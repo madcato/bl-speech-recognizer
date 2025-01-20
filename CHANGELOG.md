@@ -14,6 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 
+## [0.3.2] - 2025-01-20
+### Fixed
+- Fix mispelling Interruptible.
+- Fix Interruptible chat model to always synthetize.
+- Fix restart the recognition when **isFinal** is true.
+- Fix synthesizer to take into account the puntuation of the text.
+- Fix synthesizer to flush all the remaining text whe **isFinal** es true.
+
+## [0.3.1] - 2025-01-18
+
+### Fixed
+- Fix completion result struct.
+
 ## [0.3.0] - 2025-01-12
 
 ### Added

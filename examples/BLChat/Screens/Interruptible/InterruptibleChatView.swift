@@ -1,5 +1,5 @@
 //
-//  InterrumpibleChatView.swift
+//  InterruptibleChatView.swift
 //  BLChat
 //
 //  Created by Daniel Vela on 4/1/25.
@@ -8,8 +8,8 @@
 import SwiftUI
 
 // MARK: - View
-struct InterrumpibleChatView: View {
-  @StateObject private var viewModel = InterrumpibleChatViewModel()
+struct InterruptibleChatView: View {
+  @StateObject private var viewModel = InterruptibleChatViewModel()
   
   var body: some View {
     VStack {
@@ -51,13 +51,13 @@ struct InterrumpibleChatView: View {
       }
       .padding()
     }
-    .navigationTitle("Interrumpible Chat")
+    .navigationTitle("Interruptible Chat")
   }
 }
 
 // MARK: - Preview
-struct InterrumpibleChatView_Previews: PreviewProvider {
+struct InterruptibleChatView_Previews: PreviewProvider {
   static var previews: some View {
-    InterrumpibleChatView()
+    InterruptibleChatView()
   }
 }

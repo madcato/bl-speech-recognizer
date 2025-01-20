@@ -1,5 +1,5 @@
 //
-//  InterrumpibleChatViewModel.swift
+//  InterruptibleChatViewModel.swift
 //  BLChat
 //
 //  Created by Daniel Vela on 4/1/25.
@@ -9,24 +9,27 @@ import bl_speech_recognizer
 import SwiftUI
 
 // MARK: - ViewModel
-class InterrumpibleChatViewModel: ObservableObject {
+class InterruptibleChatViewModel: ObservableObject {
   @Published var recognizedText: String = ""
   @Published var isRecording: Bool = false
   @Published var errorText: String = ""
   @Published var showError: Bool = false
 
-  private var interrumpibleChat = InterrumpibleChat()
+  private var interruptibleChat = InterruptibleChat()
   
   @MainActor
   func startRecording() {
     isRecording = true
     
-    interrumpibleChat.synthesize(text: textToSynthesize, isFinal: true, locale: .current)
+    synthesize()
     
-    interrumpibleChat.start(inputType: .microphone, locale: .current) { result in
+    interruptibleChat.start(inputType: .microphone, locale: .current) { result in
       switch result {
       case .success(let completion):
         self.recognizedText = completion.text
+        if completion.isFinal {
+          self.synthesize()
+        }
       case .failure(let error):
         self.showError(error.localizedDescription)
       }
@@ -36,13 +39,19 @@ class InterrumpibleChatViewModel: ObservableObject {
   @MainActor
   func stopRecording() {
     isRecording = false
-    interrumpibleChat.stop()
-    interrumpibleChat.stopSynthesizing()
+    interruptibleChat.stop()
+    interruptibleChat.stopSynthesizing()
   }
   
   func showError(_ errorText: String) {
     self.errorText = errorText
     showError = true
+  }
+
+  private func synthesize() {
+    Task {
+      await self.interruptibleChat.synthesize(text: textToSynthesize, isFinal: true, locale: .current)
+    }
   }
   
   private let textToSynthesize: String = """

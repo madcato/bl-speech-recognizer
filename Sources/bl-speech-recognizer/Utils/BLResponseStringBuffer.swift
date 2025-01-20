@@ -19,14 +19,31 @@ class BLResponseStringBuffer {
     accumulatedText += text
   }
   
-  func flush(completionHandler: (String) -> Void) {
-    let text = accumulatedText
-    if minLength < text.count {
+  func flush(all: Bool, completionHandler: (String) -> Void) {
+    guard all == false else {
+      let text = accumulatedText
       accumulatedText = ""
       completionHandler(text)
+      return
+    }
+    
+    // Define a character set containing punctuation characters
+    let punctuationSet = CharacterSet.punctuationCharacters
+    var rangeOfPunctuation: Range<String.Index>?
+
+    // Find the range of the first occurrence of any punctuation character
+    if let range = accumulatedText.rangeOfCharacter(from: punctuationSet) {
+      rangeOfPunctuation = range
+    }
+    
+    if let punctuationRange = rangeOfPunctuation {
+      let text = accumulatedText[..<punctuationRange.lowerBound]
+      let indexAfterPunctuation = accumulatedText.index(after: punctuationRange.lowerBound)
+      accumulatedText = String(accumulatedText[indexAfterPunctuation...])
+      completionHandler(String(text))
     }
   }
-  
+
   func reset() {
     accumulatedText = ""
   }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0B8382602D3E3E58005707DF /* bl-speech-recognizer in Frameworks */ = {isa = PBXBuildFile; productRef = 0B83825F2D3E3E58005707DF /* bl-speech-recognizer */; };
 		0BC4AD072D2944330095538C /* bl-speech-recognizer in Frameworks */ = {isa = PBXBuildFile; productRef = 0BC4AD062D2944330095538C /* bl-speech-recognizer */; };
 /* End PBXBuildFile section */
 
@@ -64,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B8382602D3E3E58005707DF /* bl-speech-recognizer in Frameworks */,
 				0BC4AD072D2944330095538C /* bl-speech-recognizer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -144,7 +146,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				0B451F642D33CB820092C8ED /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				0BDDB54E2D293EEF00559E11 /* BLChat */,
@@ -152,6 +153,7 @@
 			name = BLChat;
 			packageProductDependencies = (
 				0BC4AD062D2944330095538C /* bl-speech-recognizer */,
+				0B83825F2D3E3E58005707DF /* bl-speech-recognizer */,
 			);
 			productName = BLChat;
 			productReference = 0BDDB54C2D293EEF00559E11 /* BLChat.app */;
@@ -213,7 +215,7 @@
 			mainGroup = 0BDDB5432D293EEF00559E11;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				0BC4AD052D2944330095538C /* XCLocalSwiftPackageReference "../../bl-speech-recognizer" */,
+				0B83825E2D3E3E58005707DF /* XCLocalSwiftPackageReference "../../bl-speech-recognizer" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0BDDB54D2D293EEF00559E11 /* Products */;
@@ -276,10 +278,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		0B451F642D33CB820092C8ED /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = 0B451F632D33CB820092C8ED /* bl-speech-recognizer */;
-		};
 		0B4E320B2D3279D400422C22 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 0BDDB54B2D293EEF00559E11 /* BLChat */;
@@ -616,16 +614,15 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		0BC4AD052D2944330095538C /* XCLocalSwiftPackageReference "../../bl-speech-recognizer" */ = {
+		0B83825E2D3E3E58005707DF /* XCLocalSwiftPackageReference "../../bl-speech-recognizer" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../../bl-speech-recognizer";
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		0B451F632D33CB820092C8ED /* bl-speech-recognizer */ = {
+		0B83825F2D3E3E58005707DF /* bl-speech-recognizer */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 0BC4AD052D2944330095538C /* XCLocalSwiftPackageReference "../../bl-speech-recognizer" */;
 			productName = "bl-speech-recognizer";
 		};
 		0BC4AD062D2944330095538C /* bl-speech-recognizer */ = {
