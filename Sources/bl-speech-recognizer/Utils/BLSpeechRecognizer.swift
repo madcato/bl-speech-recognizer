@@ -103,11 +103,12 @@ final class BLSpeechRecognizer: NSObject {
   @MainActor
   public func start() {
     self.speechRecognizer.delegate = self
-    requestAuthorization { isOk in
+    try requestAuthorization { isOk in
       switch isOk {
       case .success:
         guard self.speechRecognizer.isAvailable else {
-          throw SpeechRecognizerError.speechRecognizerNotAvailable
+          self.delegate?.speechRecognizer(error: SpeechRecognizerError.speechRecognizerNotAvailable)
+          return
         }
         
         DispatchQueue.main.async {
@@ -118,7 +119,7 @@ final class BLSpeechRecognizer: NSObject {
           }
         }
       case .failure(let error):
-        throw error
+        self.delegate?.speechRecognizer(error: error)
       }
     }
   }

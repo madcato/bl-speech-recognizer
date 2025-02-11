@@ -69,6 +69,6 @@ extension ContinuousSpeechRecognizer: BLSpeechRecognizerDelegate {
   }
   
   func speechRecognizer(error: any Error) {
-    // TODO: Notify the client of the error
+      completion?(.failure(error))
   }
 }

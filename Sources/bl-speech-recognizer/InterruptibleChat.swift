@@ -110,7 +110,11 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
       guard let self = self else { return }
       DispatchQueue.main.async {
         self.stop()
-        self.speechRecognizer?.start()
+          do {
+              try self.speechRecognizer?.start()
+          } catch {
+              fatalError(error.localizedDescription)
+          }
       }
     }
   }
@@ -128,7 +132,7 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
   }
   
   func speechRecognizer(error: any Error) {
-    // TODO: Notify the client of the error
+    completion?(.failure(error))
   }
 }
 

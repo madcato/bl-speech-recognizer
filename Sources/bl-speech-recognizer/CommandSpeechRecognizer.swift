@@ -37,13 +37,10 @@ public class CommandSpeechRecognizer: @unchecked Sendable {
     do {
       // Attempt to initialize the speech recognizer with the specified input source and locale.
       speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, task: .query)
-      
       // Set the delegate to self in order to handle speech recognition events.
       speechRecognizer.delegate = self
-      
       // Start the speech recognition process.
       speechRecognizer.start()
-      
     } catch {
       // Invoke the completion closure with the encountered error in case of failure.
       completion(.failure(error))
@@ -92,6 +89,6 @@ extension CommandSpeechRecognizer: BLSpeechRecognizerDelegate {
   }
   
   func speechRecognizer(error: any Error) {
-    // TODO: send to client
+      completion?(.failure(error))
   }
 }

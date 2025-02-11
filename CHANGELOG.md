@@ -5,15 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.1] - 2025-02-11
 
-### Added
-### Changed
-### Deprecated
-### Removed
 ### Fixed
-
-### Security
+- Error handler doesn't notify when the user permission to use speech recognizer was denied.
 
 ## [0.4.0] - 2025-02-11
 ### Added
@@ -61,3 +56,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Continuous speech recognition functionality.
 - Test case for continuous recognition.
 - Example app demonstrating the use of the recognizer.
+
+## [Unreleased]
+
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+

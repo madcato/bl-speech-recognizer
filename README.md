@@ -140,6 +140,7 @@ sequenceDiagram
 
 ## StackOverflow useful links
 
+- !!! ["Domain=kAFAssistantErrorDomain Code=1101" while setting SFSpeechAudioBufferRecognitionRequest.requiresOnDeviceRecognition = true](https://stackoverflow.com/questions/75511637/receiving-error-domain-kafassistanterrordomain-code-1101-while-setting-sfspeec)
 - [How can I specify the format of AVAudioEngine Mic-Input?](https://stackoverflow.com/questions/33484140/how-can-i-specify-the-format-of-avaudioengine-mic-input)
 - [ios speech recognition Error Domain=kAFAssistantErrorDomain Code=216 "(null)"](https://stackoverflow.com/questions/44767316/ios-speech-recognition-error-domain-kafassistanterrordomain-code-216-null)
 - [Is there a way to use iOS speech recognition in offline mode?](https://stackoverflow.com/questions/42900254/is-there-a-way-to-use-ios-speech-recognition-in-offline-mode)
