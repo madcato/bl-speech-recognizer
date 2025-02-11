@@ -10,6 +10,8 @@ From [Apple](https://developer.apple.com/documentation/speech/asking-permission-
 
 Add [NSSpeechRecognitionUsageDescription](https://developer.apple.com/documentation/BundleResources/Information-Property-List/NSSpeechRecognitionUsageDescription) to your project _.plist_ file. This key is required if your app uses APIs that send user data to Apple’s speech recognition servers.
 
+Also add [NSMicrophoneUsageDescription](https://developer.apple.com/documentation/BundleResources/Information-Property-List/NSMicrophoneUsageDescription) to run in real devices. (This is optional for iOS Simulator.)
+
 ## Apple documentation
 
 - Sample code: [Recognizing speech in live audio](https://developer.apple.com/documentation/speech/recognizing-speech-in-live-audio)
