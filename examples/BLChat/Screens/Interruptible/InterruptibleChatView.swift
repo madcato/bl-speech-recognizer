@@ -27,9 +27,23 @@ struct InterruptibleChatView: View {
             Alert(title: Text("Error"), message: Text(viewModel.errorText))
           }
       }
-      
-      Spacer()
-      
+
+      Text("Select voice:")
+      // Voice Selector
+      Picker("Select Voice", selection: $viewModel.selectedVoice) {
+        ForEach(viewModel.availableVoices, id: \.self) { voice in
+          HStack {
+            Text(voice.name)
+            Text("(\(voice.language))")
+          }.tag(voice)
+        }
+      }
+      .pickerStyle(WheelPickerStyle())
+      .onChange(of: viewModel.selectedVoice!, initial: true) { newVoice, _  in
+        viewModel.selectVoice(newVoice)
+      }
+      .padding()
+
       // Record Button
       Button(action: {
         if viewModel.isRecording {

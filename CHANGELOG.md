@@ -8,15 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Method to list all available voices.
+
 ### Changed
+- Allow (optional) to specify a synthesizer voice.
+
 ### Deprecated
 ### Removed
 ### Fixed
+- Interrumpible chat sequence Mermaid.
+
 ### Security
 
 ## [0.3.2] - 2025-01-20
 ### Fixed
-- Fix mispelling Interruptible.
+- Fix misspelling Interruptible.
 - Fix Interruptible chat model to always synthetize.
 - Fix restart the recognition when **isFinal** is true.
 - Fix synthesizer to take into account the puntuation of the text.

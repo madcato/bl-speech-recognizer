@@ -14,7 +14,7 @@ import Foundation
 /// It manages the lifecycle of speech recognition using a `BLSpeechRecognizer` instance and informs the client of results and events.
 public class InterruptibleChat: @unchecked Sendable {
   // The speech recognizer responsible for interpreting audio input.
-  private var speechRecognizer: BLSpeechRecognizer!
+  private var speechRecognizer: BLSpeechRecognizer?
   // The speech synthesizer responsible for interpreting audio output.
   private var speechSynthesizer: BLSpeechSynthesizer!
   
@@ -43,9 +43,9 @@ public class InterruptibleChat: @unchecked Sendable {
     do {
       // Initializes the speech recognizer with the given input source and locale.
       speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, task: .query)
-      speechRecognizer.delegate = self
+      speechRecognizer?.delegate = self
       // Starts the recognition process.
-      speechRecognizer.start()
+      speechRecognizer?.start()
     } catch {
       // Calls completion with an error if initialization fails.
       completion(.failure(error))
@@ -56,7 +56,7 @@ public class InterruptibleChat: @unchecked Sendable {
   @MainActor
   public func stop() {
     // Stop the speech recognizer.
-    speechRecognizer.stop()
+    speechRecognizer?.stop()
     recognitionTimer?.invalidate() // Invalidate the timer when stopping
   }
   
@@ -65,8 +65,17 @@ public class InterruptibleChat: @unchecked Sendable {
   public func synthesize(text: String, isFinal: Bool, locale: Locale) {
     if speechSynthesizer == nil {
       speechSynthesizer = BLSpeechSynthesizer(language: locale.identifier)
+      speechSynthesizer.delegate = self
     }
-    speechSynthesizer.delegate = self
+    speechSynthesizer.speak(text, isFinal: isFinal)
+  }
+  
+  @MainActor
+  public func synthesize(text: String, isFinal: Bool, voice: Voice) {
+    if speechSynthesizer == nil {
+      speechSynthesizer = BLSpeechSynthesizer(voice: voice)
+      speechSynthesizer.delegate = self
+    }
     speechSynthesizer.speak(text, isFinal: isFinal)
   }
   
@@ -74,6 +83,16 @@ public class InterruptibleChat: @unchecked Sendable {
   @MainActor
   public func stopSynthesizing() {
     speechSynthesizer?.stop()
+  }
+    
+  /// List all available voices
+  public func listVoices() -> [Voice] {
+    return BLSpeechSynthesizer.availableVoices()
+  }
+  
+  // Reset synthesizer object. This allows to change voice
+  public func resetSynthesizer() {
+    speechSynthesizer = nil
   }
 }
 
@@ -91,7 +110,7 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
       guard let self = self else { return }
       DispatchQueue.main.async {
         self.stop()
-        self.speechRecognizer.start()
+        self.speechRecognizer?.start()
       }
     }
   }
