@@ -8,17 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+
+### Security
+
+## [0.4.0] - 2025-02-11
+### Added
 - Method to list all available voices.
 
 ### Changed
 - Allow (optional) to specify a synthesizer voice.
 
-### Deprecated
-### Removed
 ### Fixed
 - Interrumpible chat sequence Mermaid.
-
-### Security
 
 ## [0.3.2] - 2025-01-20
 ### Fixed
