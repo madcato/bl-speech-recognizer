@@ -97,7 +97,9 @@
 				0BDDB54D2D293EEF00559E11 /* Products */,
 				0B4E31F02D32793500422C22 /* Frameworks */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
+			tabWidth = 2;
 		};
 		0BDDB54D2D293EEF00559E11 /* Products */ = {
 			isa = PBXGroup;
