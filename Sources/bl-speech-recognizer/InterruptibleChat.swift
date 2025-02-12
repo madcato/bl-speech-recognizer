@@ -7,6 +7,13 @@
 
 import Foundation
 
+public enum InterrumpibleChatEvent {
+    case startedListening
+    case stoppedListening
+    case startedSpeaking
+    case stoppedSpeaking
+}
+
 /// The `InterruptibleChat` class is responsible for handling continuous speech recognition.
 /// Also can synthesize text to speech. If user speaks while synthesizing, it becomes stopped.
 /// The text to be synthesize can be added as a stream. This class store the text to be synthesized.
@@ -20,6 +27,8 @@ public class InterruptibleChat: @unchecked Sendable {
   
   // Closure to be called upon completion with the recognition result or an error.
   private var completion: ((Result<InterruptibleChat.Completion, Error>) -> Void)!
+  // Closure to be called upon an event appears
+  private var eventLaunch: ((InterrumpibleChatEvent) -> Void)?
   
   private var recognitionTimer: Timer? // Timer to track inactivity
   
@@ -37,8 +46,9 @@ public class InterruptibleChat: @unchecked Sendable {
   ///   - locale: The locale specifying language and regional settings, defaults to current locale.
   ///   - completion: A closure to be executed with the result of the recognition or an error.
   @MainActor
-  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping (Result<InterruptibleChat.Completion, Error>) -> Void) {
+  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void), event: ((InterrumpibleChatEvent) -> Void)? = nil) {
     self.completion = completion
+    self.eventLaunch = event
     let inputSource = InputSourceFactory.create(inputSource: inputType)
     do {
       // Initializes the speech recognizer with the given input source and locale.
@@ -120,11 +130,11 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
   }
   
   func started() {
-    // TODO: Notify the client that recognition has started
+    eventLaunch?(.startedListening)
   }
   
   func finished() {
-    // TODO: Notify the client that recognition has finished
+    eventLaunch?(.stoppedListening)
   }
   
   func speechRecognizer(available: Bool) {
@@ -138,11 +148,11 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
 
 extension InterruptibleChat: BLSpeechSynthesizerDelegate {
   func synthesizerStarted() {
-    // TODO: Notify the client that synthesizing has finished
+    eventLaunch?(.startedSpeaking)
   }
   
   func synthesizerFinished() {
-    // TODO: Notify the client that synthesizing has finished
+    eventLaunch?(.stoppedSpeaking)
   }
   
   

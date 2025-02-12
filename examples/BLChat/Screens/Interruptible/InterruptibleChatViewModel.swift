@@ -16,6 +16,8 @@ class InterruptibleChatViewModel: ObservableObject {
   @Published var showError: Bool = false
   @Published var selectedVoice: Voice?
   @Published var availableVoices: [Voice] = []
+  @Published var listening: Bool = false
+  @Published var speaking: Bool = false
 
   private var interruptibleChat = InterruptibleChat()
   
@@ -34,7 +36,7 @@ class InterruptibleChatViewModel: ObservableObject {
     
     let locale =  Locale(identifier: selectedVoice?.language ?? "en-US")
     
-    interruptibleChat.start(inputType: .microphone, locale: locale) { result in
+    interruptibleChat.start(inputType: .microphone, locale: locale, completion: { result in
       switch result {
       case .success(let completion):
         self.recognizedText = completion.text
@@ -43,6 +45,17 @@ class InterruptibleChatViewModel: ObservableObject {
         }
       case .failure(let error):
         self.showError(error.localizedDescription)
+      }
+    }) { event in
+      switch event {
+      case .startedListening:
+        self.listening = true
+      case .startedSpeaking:
+        self.speaking = true
+      case .stoppedListening:
+        self.listening = false
+      case .stoppedSpeaking:
+        self.speaking = false
       }
     }
   }

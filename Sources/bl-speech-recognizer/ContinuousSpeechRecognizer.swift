@@ -7,7 +7,12 @@
 
 import Foundation
 
-/// The `ContinuousSpeechRecognizer` class is responsible for handling continuous speech recognition. 
+public enum ContinuousSpeechRecognizerEvent {
+    case startedListening
+    case stoppedListening
+}
+
+/// The `ContinuousSpeechRecognizer` class is responsible for handling continuous speech recognition.
 /// It can be used in long interactions with the user, like a chat or a dictation.
 /// It manages the lifecycle of speech recognition using a `BLSpeechRecognizer` instance and informs the client of results and events.
 public class ContinuousSpeechRecognizer {
@@ -16,6 +21,8 @@ public class ContinuousSpeechRecognizer {
   
   // Closure to be called upon completion with the recognition result or an error.
   private var completion: ((Result<String, Error>) -> Void)!
+  // Closure to be called upon an event appears
+  private var eventLaunch: ((ContinuousSpeechRecognizerEvent) -> Void)?
   
   public init() {}
   
@@ -26,8 +33,9 @@ public class ContinuousSpeechRecognizer {
   ///   - locale: The locale specifying language and regional settings, defaults to current locale.
   ///   - completion: A closure to be executed with the result of the recognition or an error.
   @MainActor
-  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping (Result<String, Error>) -> Void) {
+  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping ((Result<String, Error>) -> Void), event: ((ContinuousSpeechRecognizerEvent) -> Void)? = nil) {
     self.completion = completion
+    self.eventLaunch = event
     let inputSource = InputSourceFactory.create(inputSource: inputType)
     do {
       // Initializes the speech recognizer with the given input source and locale.
@@ -57,11 +65,11 @@ extension ContinuousSpeechRecognizer: BLSpeechRecognizerDelegate {
   }
   
   func started() {
-    // TODO: Notify the client that recognition has started
+    eventLaunch?(.startedListening)
   }
   
   func finished() {
-    // TODO: Notify the client that recognition has finished
+    eventLaunch?(.stoppedListening)
   }
   
   func speechRecognizer(available: Bool) {
