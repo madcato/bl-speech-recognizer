@@ -15,6 +15,24 @@ struct InterruptibleChatView: View {
     VStack {
       Text("Use your auricular to listen")
         .padding()
+      
+      // State
+      HStack {
+        Image(systemName: "mic")
+          .resizable()
+          .scaledToFit()
+          .foregroundColor(viewModel.listening ? .blue : .gray)
+          .frame(width: 100, height: 50)
+          .symbolEffect(.variableColor, options: viewModel.listening ? .repeating : .default, value: viewModel.listening)
+
+        Image(systemName: "waveform")
+          .resizable()
+          .scaledToFit()
+          .frame(width: 100, height: 50)
+          .foregroundColor(.blue)
+          .symbolVariant(.fill)
+          .symbolEffect(.bounce.down, options: .repeating, isActive: viewModel.speaking)
+        }
       // Text View
       ScrollView {
         Text(viewModel.recognizedText)

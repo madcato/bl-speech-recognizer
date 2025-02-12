@@ -7,6 +7,11 @@
 
 import Foundation
 
+public enum CommandSpeechRecognizerEvent {
+    case startedListening
+    case stoppedListening
+}
+
 /// A speech recognizer that handles voice commands using a specific input source and locale
 public class CommandSpeechRecognizer: @unchecked Sendable {
   
@@ -15,6 +20,8 @@ public class CommandSpeechRecognizer: @unchecked Sendable {
   
   /// A closure that handles the result of the speech recognition, providing a success with the recognized text or a failure with an error.
   private var completion: ((Result<String, Error>) -> Void)!
+  // Closure to be called upon an event appears
+  private var eventLaunch: ((CommandSpeechRecognizerEvent) -> Void)?
 
   private var recognitionTimer: Timer? // Timer to track inactivity
   
@@ -28,8 +35,9 @@ public class CommandSpeechRecognizer: @unchecked Sendable {
   ///   - locale: The locale to be used for speech recognition. Defaults to the current locale.
   ///   - completion: A closure that will be called with the result of the speech recognition task.
   @MainActor
-  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping (Result<String, Error>) -> Void) {
+  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping ((Result<String, Error>) -> Void), event: ((CommandSpeechRecognizerEvent) -> Void)? = nil) {
     self.completion = completion
+    self.eventLaunch = event
     lastRecognizedText = ""
     // Create an input source based on the provided input type.
     let inputSource = InputSourceFactory.create(inputSource: inputType)
@@ -77,11 +85,11 @@ extension CommandSpeechRecognizer: BLSpeechRecognizerDelegate {
   
   
   func started() {
-    // TODO: send to client
+    eventLaunch?(.startedListening)
   }
   
   func finished() {
-    // TODO: send to client
+    eventLaunch?(.stoppedListening)
   }
   
   func speechRecognizer(available: Bool) {

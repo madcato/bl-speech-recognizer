@@ -158,6 +158,7 @@ final class BLSpeechRecognizer: NSObject {
           self.inputSource.stop()
           print(error.localizedDescription)
         }
+        self.delegate?.finished()
         return
       }
       
@@ -167,6 +168,7 @@ final class BLSpeechRecognizer: NSObject {
       }
     }
     )
+    self.delegate?.started()
   }
   
   private func stopRecognition() {
