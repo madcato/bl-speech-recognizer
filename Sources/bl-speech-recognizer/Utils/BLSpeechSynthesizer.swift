@@ -25,11 +25,11 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   private var buffer = BLResponseStringBuffer(minLength: 10)
   private var isFinished = false
   private var voice: AVSpeechSynthesisVoice!
-
+  
   var isSpeaking: Bool {
     return synthesizer.isSpeaking
   }
-
+  
   init(language: String) {
     self.voice = AVSpeechSynthesisVoice(language: language)
   }
@@ -38,18 +38,18 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
     let voiceIdentifier = voice.identifier
     self.voice = AVSpeechSynthesisVoice(identifier: voiceIdentifier)
   }
-
+  
   func stop() {
     synthesizer.stopSpeaking(at: AVSpeechBoundary.immediate)
     buffer.reset()
   }
-
+  
   func speak(_ str: String, isFinal: Bool) {
     isFinished = isFinal
     buffer.onMessageReceived(text: str)
     internalSpeak()
   }
-    
+  
   static func availableVoices() -> [Voice] {
     return AVSpeechSynthesisVoice.speechVoices().map { voice in
       Voice(language: voice.language,
@@ -57,7 +57,7 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
             name: voice.name)
     }
   }
-
+  
   private func internalSpeak() {
     guard synthesizer.isSpeaking == false else { return }
     buffer.flush(all: isFinished) { text in
@@ -73,17 +73,14 @@ extension BLSpeechSynthesizer: AVSpeechSynthesizerDelegate {
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
     delegate?.synthesizerStarted()
   }
-
+  
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-    if buffer.accumulatedText.count > 0 {
-      internalSpeak()
-    } else {
-      if isFinished {
-        delegate?.synthesizerFinished()
-      }
+    internalSpeak()
+    if isFinished {
+      delegate?.synthesizerFinished()
     }
   }
-
+  
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
     delegate?.synthesizerFinished()
   }
