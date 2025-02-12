@@ -172,9 +172,10 @@ final class BLSpeechRecognizer: NSObject {
   }
   
   private func stopRecognition() {
-    recognitionTask?.cancel()
-    recognitionTask = nil
     inputSource.stop()
+    recognitionTask?.cancel()
+    recognitionTask?.finish()
+    recognitionTask = nil
     recognitionRequest = nil
   }
   
@@ -182,6 +183,7 @@ final class BLSpeechRecognizer: NSObject {
     inputSource.stop()
     recognitionRequest = nil
     recognitionTask?.cancel()
+    recognitionTask?.finish()
     recognitionTask = nil
     //    innerRestart()
   }
