@@ -75,9 +75,10 @@ extension BLSpeechSynthesizer: AVSpeechSynthesizerDelegate {
   }
   
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-    internalSpeak()
     if isFinished {
       delegate?.synthesizerFinished()
+    } else {
+      internalSpeak()
     }
   }
   
