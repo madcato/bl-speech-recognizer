@@ -25,12 +25,14 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   private var buffer = BLResponseStringBuffer(minLength: 10)
   private var isFinished = false
   private var voice: AVSpeechSynthesisVoice!
+  private var rate: Float?
+  private var pitchMultiplier: Float?
   
   var isSpeaking: Bool {
     return synthesizer.isSpeaking
   }
   
-  init(language: String) {
+  init(language: String, rate: Float? = nil, pitchMultiplier: Float? = nil) {
     self.voice = AVSpeechSynthesisVoice(language: language)
   }
   
@@ -63,6 +65,12 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
     buffer.flush(all: isFinished) { text in
       let utterance = AVSpeechUtterance(string: text)
       utterance.voice = self.voice
+      if let rate = rate {
+        utterance.rate = rate
+      }
+      if let pitchMultiplier = pitchMultiplier {
+        utterance.pitchMultiplier = pitchMultiplier
+      }
       synthesizer.delegate = self
       synthesizer.speak(utterance)
     }
