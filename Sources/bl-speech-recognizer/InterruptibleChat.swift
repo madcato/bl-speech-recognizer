@@ -30,8 +30,6 @@ public class InterruptibleChat: @unchecked Sendable {
   // Closure to be called upon an event appears
   private var eventLaunch: ((InterrumpibleChatEvent) -> Void)?
   
-  private var recognitionTimer: Timer? // Timer to track inactivity
-  
   public init() {}
   
   public struct Completion {
@@ -52,7 +50,7 @@ public class InterruptibleChat: @unchecked Sendable {
     let inputSource = InputSourceFactory.create(inputSource: inputType)
     do {
       // Initializes the speech recognizer with the given input source and locale.
-      speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, task: .query)
+      speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: false, task: .query)
       speechRecognizer?.delegate = self
       // Starts the recognition process.
       speechRecognizer?.start()
@@ -67,7 +65,6 @@ public class InterruptibleChat: @unchecked Sendable {
   public func stop() {
     // Stop the speech recognizer.
     speechRecognizer?.stop()
-    recognitionTimer?.invalidate() // Invalidate the timer when stopping
   }
   
   /// Starts or continues the speech synthesizing process and cleans up resources.
@@ -111,20 +108,9 @@ public class InterruptibleChat: @unchecked Sendable {
 extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
   @MainActor func recognized(text: String, isFinal: Bool) {
     self.stopSynthesizing()
-    
     // Append the newly recognized text
-    self.completion(.success(.init(text: text, isFinal: isFinal)))
-    // Reset and start the timer
-    recognitionTimer?.invalidate()
-    recognitionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
-      guard let self = self else { return }
-      DispatchQueue.main.async {
-        self.stop()
-          DispatchQueue.main.async {
-              self.speechRecognizer?.start()
-          }
-      }
-    }
+//    print("Recognized: \(text), isFinal: \(isFinal)")
+    self.completion(.success(.init(text: text, isFinal: true)))
   }
   
   func started() {

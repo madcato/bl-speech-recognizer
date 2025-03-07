@@ -68,11 +68,15 @@ final class BLSpeechRecognizer: NSObject {
   /// Input source: can be microphone or cust,
   /// If custom, all the input must be provided by using method process
   private var inputSource: InputSource
+  // When **false**, the recognized text callback is only called once.
+  // When **true**, every recognized text is passed to the callback inmediately.
+  private let shouldReportPartialResults: Bool
   
-  public init(inputSource: InputSource, locale: Locale = .current, wait time: Double? = 0.8, task taskType: BLTaskType? = nil) throws {
+  public init(inputSource: InputSource, locale: Locale = .current, wait time: Double? = 0.8, shouldReportPartialResults: Bool = true, task taskType: BLTaskType? = nil) throws {
     self.waitTime = time
     self.taskType = taskType
     self.inputSource = inputSource
+    self.shouldReportPartialResults = shouldReportPartialResults
     guard let recognizer = SFSpeechRecognizer(locale: locale) else {
       throw SpeechRecognizerError.speechRecognizerNotAvailable
     }
@@ -138,14 +142,17 @@ final class BLSpeechRecognizer: NSObject {
     guard let recognitionRequest = recognitionRequest else {
       throw SpeechRecognizerError.recognitionTaskUnable
     } //5
-    recognitionRequest.shouldReportPartialResults = true  //6
+    recognitionRequest.shouldReportPartialResults = shouldReportPartialResults  //6
+    if #available(iOS 13, *) {
+      recognitionRequest.requiresOnDeviceRecognition = true
+    }
     recognitionRequest.taskHint = taskType?.convert ?? SFSpeechRecognitionTaskHint.unspecified
     recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest,
                                                        resultHandler: { (result, error) in  //7
       if let error = error {
         if error.localizedDescription == "Error" {
 #if DEBUG
-          print(error.localizedDescription)
+          print("recognitionTask Error: \(error)")
 #endif
           self.clean()
           // This error happends after one minute of inactivity.
@@ -156,7 +163,7 @@ final class BLSpeechRecognizer: NSObject {
           //          }
         } else {
           self.inputSource.stop()
-          print(error.localizedDescription)
+          print("recognitionTask generic error: \(error)")
         }
         self.delegate?.finished()
         return
@@ -164,6 +171,7 @@ final class BLSpeechRecognizer: NSObject {
       
       if let result = result {
         let transcription = result.bestTranscription
+//        print("Transcription: \(transcription), isFinal: \(result.isFinal)")
         self.delegate?.recognized(text: transcription.formattedString, isFinal: result.isFinal)
       }
     }
@@ -173,9 +181,9 @@ final class BLSpeechRecognizer: NSObject {
   
   private func stopRecognition() {
     inputSource.stop()
-    recognitionTask?.cancel()
-    recognitionTask?.finish()
-    recognitionTask = nil
+//    recognitionTask?.cancel()
+//    recognitionTask?.finish()
+//    recognitionTask = nil
     recognitionRequest = nil
   }
   

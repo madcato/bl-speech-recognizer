@@ -11,13 +11,15 @@ import Speech
 class MicrophoneInputSource: InputSource {
   /// Audio Engine to recieve data from the michrophone
   /// Audio Engine to receive data from the microphone
-  private let audioEngine: AVAudioEngine = AVAudioEngine()
+  private var audioEngine: AVAudioEngine = AVAudioEngine()
   
   private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest? = nil
   
   /// Initializes the microphone input by configuring the audio session.
   func initialize() throws -> SFSpeechRecognitionRequest? {
     configureAudioSession()
+    
+    audioEngine = AVAudioEngine()
     
     self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     let inputNode = audioEngine.inputNode
@@ -42,10 +44,12 @@ class MicrophoneInputSource: InputSource {
   /// Stops the audio engine and removes any installed taps.
   func stop() {
     recognitionRequest?.endAudio()
-    recognitionRequest = nil
     audioEngine.stop()
-    audioEngine.inputNode.removeTap(onBus: 0)
-    audioEngine.inputNode.reset()
+    if let inputNode = audioEngine.inputNode as? AVAudioInputNode {
+      inputNode.removeTap(onBus: 0)
+    }
+//    audioEngine.inputNode.reset()
+    recognitionRequest = nil
   }
   
   /// Configures the audio session specifically for capturing spoken audio.
@@ -55,7 +59,7 @@ class MicrophoneInputSource: InputSource {
     let audioSession = AVAudioSession.sharedInstance()
     do {
       try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
-                                   mode: .videoChat,
+                                   mode: .measurement,
                                    options: [.allowBluetoothA2DP, .allowBluetooth, .allowAirPlay, .defaultToSpeaker])
 //      try audioSession.setPreferredSampleRate(24000.0) // or 48000.0 depending on your needs
       try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
