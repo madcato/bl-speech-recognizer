@@ -11,13 +11,15 @@ import Speech
 class MicrophoneInputSource: InputSource {
   /// Audio Engine to recieve data from the michrophone
   /// Audio Engine to receive data from the microphone
-  private let audioEngine: AVAudioEngine = AVAudioEngine()
+  private var audioEngine: AVAudioEngine = AVAudioEngine()
   
   private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest? = nil
   
   /// Initializes the microphone input by configuring the audio session.
   func initialize() throws -> SFSpeechRecognitionRequest? {
     configureAudioSession()
+    
+    audioEngine = AVAudioEngine()
     
     self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     let inputNode = audioEngine.inputNode
