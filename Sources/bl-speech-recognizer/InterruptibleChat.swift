@@ -116,7 +116,7 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
     self.completion(.success(.init(text: text, isFinal: isFinal)))
     // Reset and start the timer
     recognitionTimer?.invalidate()
-    recognitionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
+    recognitionTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
       guard let self = self else { return }
       DispatchQueue.main.async {
         self.stop()

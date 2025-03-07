@@ -139,13 +139,16 @@ final class BLSpeechRecognizer: NSObject {
       throw SpeechRecognizerError.recognitionTaskUnable
     } //5
     recognitionRequest.shouldReportPartialResults = true  //6
+    if #available(iOS 13, *) {
+      recognitionRequest.requiresOnDeviceRecognition = true
+    }
     recognitionRequest.taskHint = taskType?.convert ?? SFSpeechRecognitionTaskHint.unspecified
     recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest,
                                                        resultHandler: { (result, error) in  //7
       if let error = error {
         if error.localizedDescription == "Error" {
 #if DEBUG
-          print(error.localizedDescription)
+          print("recognitionTask Error: \(error)")
 #endif
           self.clean()
           // This error happends after one minute of inactivity.
@@ -156,7 +159,7 @@ final class BLSpeechRecognizer: NSObject {
           //          }
         } else {
           self.inputSource.stop()
-          print(error.localizedDescription)
+          print("recognitionTask generic error: \(error)")
         }
         self.delegate?.finished()
         return
