@@ -12,6 +12,8 @@ public struct Voice: Hashable {
   public var language: String
   public var identifier: String
   public var name: String
+  public var rate: Float? = nil
+  public var pitchMultiplier: Float? = nil
 }
 
 protocol BLSpeechSynthesizerDelegate: AnyObject {
@@ -32,12 +34,14 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
     return synthesizer.isSpeaking
   }
   
-  init(language: String, rate: Float? = nil, pitchMultiplier: Float? = nil) {
+  init(language: String) {
     self.voice = AVSpeechSynthesisVoice(language: language)
   }
   
   init(voice: Voice) {
     let voiceIdentifier = voice.identifier
+    self.rate = voice.rate
+    self.pitchMultiplier = voice.pitchMultiplier
     self.voice = AVSpeechSynthesisVoice(identifier: voiceIdentifier)
   }
   
