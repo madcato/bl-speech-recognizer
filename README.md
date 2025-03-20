@@ -144,3 +144,4 @@ sequenceDiagram
 - [SFSpeechRecognizer is not available](https://stackoverflow.com/questions/39741938/sfspeechrecognizer-is-not-available)
 - [SFspeechRecognizer recognize speech more than one minutes in ios 15?](https://stackoverflow.com/questions/72306390/sfspeechrecognizer-recognize-speech-more-than-one-minutes-in-ios-15)
 - [SFSpeechRecognizer isn't working properly in IOS 13.2](https://stackoverflow.com/questions/58673072/sfspeechrecognizer-isnt-working-properly-in-ios-13-2)
+- [How to increase speed of Speech-to-text transcription in iOS App?](https://stackoverflow.com/questions/71767687/how-to-increase-speed-of-speech-to-text-transcription-in-ios-app)

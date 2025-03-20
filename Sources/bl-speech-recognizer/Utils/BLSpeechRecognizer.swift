@@ -115,8 +115,8 @@ final class BLSpeechRecognizer: NSObject {
           return
         }
         
-        DispatchQueue.main.async {
-          do{
+        DispatchQueue.global(qos: .userInteractive).async {
+          do {
             try self.startRecognition()
           } catch {
             self.delegate?.speechRecognizer(error: error)
@@ -135,9 +135,6 @@ final class BLSpeechRecognizer: NSObject {
   
   @MainActor
   private func startRecognition() throws {
-    guard Thread.isMainThread else {
-      fatalError("Must be called from main thread")
-    }
     recognitionRequest = try self.inputSource.initialize()  //3
     guard let recognitionRequest = recognitionRequest else {
       throw SpeechRecognizerError.recognitionTaskUnable
