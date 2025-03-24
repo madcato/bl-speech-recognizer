@@ -25,9 +25,11 @@ class MicrophoneInputSource: InputSource {
     configureAudioSession()
     
     audioEngine = AVAudioEngine()
+    audioEngine.isAutoShutdownEnabled = false
     
     self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     let inputNode = audioEngine.inputNode
+    inputNode.isVoiceProcessingAGCEnabled = true
     
     /// Check if the input node can provide audio data
     if(inputNode.inputFormat(forBus: 0).channelCount == 0) {
