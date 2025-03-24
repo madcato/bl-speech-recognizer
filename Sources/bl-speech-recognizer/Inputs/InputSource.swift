@@ -40,10 +40,10 @@ class InputSourceFactory {
    
    - Returns: An InputSource instance corresponding to the specified type.
    */
-  static func create(inputSource type: InputSourceType) -> InputSource {
+  static func create(inputSource type: InputSourceType, speakDetectedCallback: (() -> Void)? = nil) -> InputSource {
     switch type {
     case .microphone:
-      return MicrophoneInputSource()  // Returns an instance of a microphone input source
+      return MicrophoneInputSource(speakDetected: speakDetectedCallback)  // Returns an instance of a microphone input source
     case .audioFile(let url):
       return AudioFileInput(url: url)      // Returns an instance for audio file input with the specified URL
     case .customStream:
