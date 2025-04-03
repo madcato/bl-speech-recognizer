@@ -127,15 +127,9 @@ sequenceDiagram
     bl-speech-recognizer-->>User: "name"
     User-->>bl-speech-recognizer: "Delete"
     bl-speech-recognizer->>bl-speech-recognizer:stopSynthesizing()
-    bl-speech-recognizer->>App: recognized("Delete", isFinal: false)
     User-->>bl-speech-recognizer: "all"
-    bl-speech-recognizer->>App: recognized("Delete all", isFinal: false)
     User-->>bl-speech-recognizer: "files"
-    bl-speech-recognizer->>App: recognized("Delete all files", isFinal: false)
-    User-->>bl-speech-recognizer: (One second without speech)
-    bl-speech-recognizer->>bl-speech-recognizer: stop()
-    bl-speech-recognizer->>App: recognized("", isFinal: true)
-    bl-speech-recognizer->>bl-speech-recognizer: start()
+    bl-speech-recognizer->>App: recognized("Delete all files", isFinal: true)
 ```
 
 ## StackOverflow useful links
