@@ -168,7 +168,7 @@ final class BLSpeechRecognizer: NSObject {
       
       if let result = result {
         let transcription = result.bestTranscription
-        print("Transcription: \(transcription), isFinal: \(result.isFinal)")
+//        print("Transcription: \(transcription), isFinal: \(result.isFinal)")
         self.delegate?.recognized(text: transcription.formattedString, isFinal: result.isFinal)
       }
     }

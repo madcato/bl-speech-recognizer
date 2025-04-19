@@ -104,6 +104,9 @@ public class InterruptibleChat: @unchecked Sendable {
   }
   
   private func userIsSpeaking() {
+    Task.detached {
+      await self.stopSynthesizing()
+    }
     eventLaunch?(.detectedSpeaking)
   }
 }

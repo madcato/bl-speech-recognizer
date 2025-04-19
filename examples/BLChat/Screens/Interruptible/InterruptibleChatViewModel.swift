@@ -47,17 +47,19 @@ class InterruptibleChatViewModel: ObservableObject {
         self.showError(error.localizedDescription)
       }
     }) { event in
-      switch event {
-      case .startedListening:
-        self.listening = true
-      case .startedSpeaking:
-        self.speaking = true
-      case .stoppedListening:
-        self.listening = false
-      case .stoppedSpeaking:
-        self.speaking = false
-      case .detectedSpeaking:
-        self.listening = true
+      Task {
+        switch event {
+        case .startedListening:
+          self.listening = true
+        case .startedSpeaking:
+          self.speaking = true
+        case .stoppedListening:
+          self.listening = false
+        case .stoppedSpeaking:
+          self.speaking = false
+        case .detectedSpeaking:
+          self.listening = true
+        }
       }
     }
   }

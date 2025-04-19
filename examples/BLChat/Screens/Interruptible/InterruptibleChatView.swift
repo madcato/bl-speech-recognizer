@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import MediaPlayer
+import UIKit
 
 // MARK: - View
 struct InterruptibleChatView: View {
@@ -14,8 +16,10 @@ struct InterruptibleChatView: View {
   var body: some View {
     VStack {
       Text("Use your auricular to listen")
+        
+      VolumeSlider()
         .padding()
-      
+        .frame(maxHeight: 50)
       // State
       HStack {
         Image(systemName: "mic")
@@ -85,6 +89,14 @@ struct InterruptibleChatView: View {
     }
     .navigationTitle("Interruptible Chat")
   }
+}
+
+struct VolumeSlider: UIViewRepresentable {
+   func makeUIView(context: Context) -> MPVolumeView {
+      MPVolumeView(frame: .zero)
+   }
+
+   func updateUIView(_ view: MPVolumeView, context: Context) {}
 }
 
 // MARK: - Preview

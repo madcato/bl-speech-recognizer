@@ -52,7 +52,7 @@ class MicrophoneInputSource: InputSource {
         let threshold: Float32 = 0.05
         
         if average > threshold {
-          print("¡Hablando!")
+//          print("¡Hablando!")
           speakDetectedCallBack?()
         }
       }
@@ -80,9 +80,10 @@ class MicrophoneInputSource: InputSource {
   /// This method sets the category, mode, and options for best results during speech capture.
   func configureAudioSession() {
     let audioSession = AVAudioSession.sharedInstance()
+
     do {
       try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
-                                   mode: .measurement,
+                                   mode: .default,
                                    options: [.allowBluetooth])
       //      try audioSession.setPreferredSampleRate(24000.0) // or 48000.0 depending on your needs
 #if os(watchOS)
@@ -92,6 +93,13 @@ class MicrophoneInputSource: InputSource {
       }
     })
 #elseif !os(macOS)
+      if #available(iOS 18.2, *) {
+        print("AVAudioSessionCancelledInputAvailable: \(audioSession.isEchoCancelledInputAvailable)")
+        
+        if audioSession.isEchoCancelledInputAvailable {
+          try audioSession.setPrefersEchoCancelledInput(true)
+        }
+      }
       try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
 #endif
     } catch {

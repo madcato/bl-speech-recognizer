@@ -35,6 +35,16 @@
 		0BDDB5672D293EF000559E11 /* BLChatUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BLChatUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0B7FE2752DB3B73E0092533C /* Exceptions for "BLChat" folder in "BLChat" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0BDDB54B2D293EEF00559E11 /* BLChat */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0B4E32072D3279D400422C22 /* BLChatTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -43,6 +53,9 @@
 		};
 		0BDDB54E2D293EEF00559E11 /* BLChat */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0B7FE2752DB3B73E0092533C /* Exceptions for "BLChat" folder in "BLChat" target */,
+			);
 			path = BLChat;
 			sourceTree = "<group>";
 		};
@@ -461,6 +474,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BLChat/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "To test bl-speech-recognizer";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "To test bl-speech-recognizer package";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -502,6 +516,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BLChat/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "To test bl-speech-recognizer";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "To test bl-speech-recognizer package";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
