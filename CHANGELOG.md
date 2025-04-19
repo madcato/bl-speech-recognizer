@@ -10,11 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Configrue rate and pitch modifiers for speech synthesizer.
-- Detect when user is speaking, before the text is recofnized.
+- Detect when user is speaking, before the text is recognized.
 
 ### Changed
 
-- Speech recognizing is performed ina background thread to avoid blocking the main thread.
+- Speech recognizing is performed in a background thread to avoid blocking the main thread.
 
 ### Fixed
 
