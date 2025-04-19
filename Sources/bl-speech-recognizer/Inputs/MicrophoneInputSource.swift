@@ -79,18 +79,24 @@ class MicrophoneInputSource: InputSource {
   /// Configures the audio session specifically for capturing spoken audio.
   /// This method sets the category, mode, and options for best results during speech capture.
   func configureAudioSession() {
-#if !os(macOS)
     let audioSession = AVAudioSession.sharedInstance()
     do {
       try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                    mode: .measurement,
-                                   options: [.allowBluetoothA2DP, .allowBluetooth, .allowAirPlay, .defaultToSpeaker])
+                                   options: [.allowBluetooth])
       //      try audioSession.setPreferredSampleRate(24000.0) // or 48000.0 depending on your needs
+#if os(watchOS)
+    audioSession.activate(completionHandler: { done, error in
+      if let error = error {
+        print(SpeechRecognizerError.auidoPropertiesError.message)
+      }
+    })
+#elseif !os(macOS)
       try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+#endif
     } catch {
       // Logs an error if audio session properties can't be set
       print(SpeechRecognizerError.auidoPropertiesError.message)
     }
-#endif
   }
 }
