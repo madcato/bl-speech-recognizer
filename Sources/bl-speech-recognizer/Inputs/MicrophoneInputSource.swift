@@ -15,14 +15,21 @@ class MicrophoneInputSource: InputSource {
   
   private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest? = nil
   
+  private var speakDetectedCallBack: (() -> Void)?
+  
+  init(speakDetected: (() -> Void)? = nil) {
+    self.speakDetectedCallBack = speakDetected
+  }
   /// Initializes the microphone input by configuring the audio session.
   func initialize() throws -> SFSpeechRecognitionRequest? {
     configureAudioSession()
     
     audioEngine = AVAudioEngine()
+    audioEngine.isAutoShutdownEnabled = false
     
     self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     let inputNode = audioEngine.inputNode
+    inputNode.isVoiceProcessingAGCEnabled = true
     
     /// Check if the input node can provide audio data
     if(inputNode.inputFormat(forBus: 0).channelCount == 0) {
@@ -30,10 +37,27 @@ class MicrophoneInputSource: InputSource {
     }
     /// Set up the format for recording and add a tap to the audio engine's input node
     let recordingFormat = inputNode.outputFormat(forBus: 0)  // 11
-    inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer, _) in
+    inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [self] (buffer, _) in
       self.recognitionRequest?.append(buffer)
+      
+      // Calcula el nivel RMS para detectar actividad sonora.
+      if let channelData = buffer.floatChannelData {
+        var sum: Float32 = 0.0
+        for i in 0..<Int(buffer.frameLength) {
+          sum += fabs(channelData.pointee[i])
+        }
+        let average = sum / Float32(buffer.frameLength)
+        
+        // Define un umbral para detectar cuando el usuario habla.
+        let threshold: Float32 = 0.05
+        
+        if average > threshold {
+          print("¡Hablando!")
+          speakDetectedCallBack?()
+        }
+      }
     }
-
+    
     /// Prepare and start the audio engine
     audioEngine.prepare()  // 12
     try audioEngine.start()
@@ -48,25 +72,31 @@ class MicrophoneInputSource: InputSource {
     if let inputNode = audioEngine.inputNode as? AVAudioInputNode {
       inputNode.removeTap(onBus: 0)
     }
-//    audioEngine.inputNode.reset()
+    //    audioEngine.inputNode.reset()
     recognitionRequest = nil
   }
   
   /// Configures the audio session specifically for capturing spoken audio.
   /// This method sets the category, mode, and options for best results during speech capture.
   func configureAudioSession() {
-#if !os(macOS)
     let audioSession = AVAudioSession.sharedInstance()
     do {
       try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                    mode: .measurement,
-                                   options: [.allowBluetoothA2DP, .allowBluetooth, .allowAirPlay, .defaultToSpeaker])
-//      try audioSession.setPreferredSampleRate(24000.0) // or 48000.0 depending on your needs
+                                   options: [.allowBluetooth])
+      //      try audioSession.setPreferredSampleRate(24000.0) // or 48000.0 depending on your needs
+#if os(watchOS)
+    audioSession.activate(completionHandler: { done, error in
+      if let error = error {
+        print(SpeechRecognizerError.auidoPropertiesError.message)
+      }
+    })
+#elseif !os(macOS)
       try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+#endif
     } catch {
       // Logs an error if audio session properties can't be set
       print(SpeechRecognizerError.auidoPropertiesError.message)
     }
-#endif
   }
 }

@@ -8,10 +8,11 @@
 import Foundation
 
 public enum InterrumpibleChatEvent {
-    case startedListening
-    case stoppedListening
-    case startedSpeaking
-    case stoppedSpeaking
+  case startedListening
+  case stoppedListening
+  case startedSpeaking
+  case stoppedSpeaking
+  case detectedSpeaking
 }
 
 /// The `InterruptibleChat` class is responsible for handling continuous speech recognition.
@@ -47,7 +48,7 @@ public class InterruptibleChat: @unchecked Sendable {
   public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void), event: ((InterrumpibleChatEvent) -> Void)? = nil) {
     self.completion = completion
     self.eventLaunch = event
-    let inputSource = InputSourceFactory.create(inputSource: inputType)
+    let inputSource = InputSourceFactory.create(inputSource: inputType, speakDetectedCallback: userIsSpeaking)
     do {
       // Initializes the speech recognizer with the given input source and locale.
       speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: false, task: .query)
@@ -91,7 +92,7 @@ public class InterruptibleChat: @unchecked Sendable {
   public func stopSynthesizing() {
     speechSynthesizer?.stop()
   }
-    
+  
   /// List all available voices
   public func listVoices() -> [Voice] {
     return BLSpeechSynthesizer.availableVoices()
@@ -100,6 +101,10 @@ public class InterruptibleChat: @unchecked Sendable {
   // Reset synthesizer object. This allows to change voice
   public func resetSynthesizer() {
     speechSynthesizer = nil
+  }
+  
+  private func userIsSpeaking() {
+    eventLaunch?(.detectedSpeaking)
   }
 }
 

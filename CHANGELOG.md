@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.6] - 2025-04-19
+
+### Added
+
+- Configrue rate and pitch modifiers for speech synthesizer.
+- Detect when user is speaking, before the text is recofnized.
+
+### Changed
+
+- Speech recognizing is performed ina background thread to avoid blocking the main thread.
+
+### Fixed
+
+- Code refactoring to improve overall running performance.
+
 ## [0.5.5] - 2025-03-11
 
 ### Added
