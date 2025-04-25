@@ -26,6 +26,13 @@ class MicrophoneInputSource: InputSource {
     
     audioEngine = AVAudioEngine()
     audioEngine.isAutoShutdownEnabled = false
+
+    // Echo handling (AEC)
+    if #available(iOS 16.0, *) {
+      try audioEngine.inputNode.setVoiceProcessingEnabled(true)
+      try audioEngine.outputNode.setVoiceProcessingEnabled(true)
+    }
+    // End Echo handling (AEC)
     
     self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     let inputNode = audioEngine.inputNode
@@ -76,16 +83,15 @@ class MicrophoneInputSource: InputSource {
     recognitionRequest = nil
   }
   
-  /// Configures the audio session specifically for capturing spoken audio.
+  /// Configure the audio session specifically for capturing spoken audio.
   /// This method sets the category, mode, and options for best results during speech capture.
   func configureAudioSession() {
     let audioSession = AVAudioSession.sharedInstance()
 
     do {
       try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
-                                   mode: .default,
-                                   options: [.allowBluetooth])
-      //      try audioSession.setPreferredSampleRate(24000.0) // or 48000.0 depending on your needs
+                                   mode: .voiceChat,
+                                   options: [.allowBluetooth, .defaultToSpeaker, .allowAirPlay, .allowBluetoothA2DP])
 #if os(watchOS)
     audioSession.activate(completionHandler: { done, error in
       if let error = error {
