@@ -68,13 +68,13 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
     self.synthesizer = self.synthesizer ?? initializeSynthesizer()
     guard synthesizer?.isSpeaking == false else { return }
     buffer.flush(all: isFinished) { text in
-//      let utterance = if #available(iOS 16.0, *) {
-//        AVSpeechUtterance(ssmlRepresentation: text) ?? AVSpeechUtterance(string: text)
-//      } else {
-//        AVSpeechUtterance(string: text)
-//      }
-//  
-      let utterance = AVSpeechUtterance(string: text)
+      let utterance = if #available(iOS 16.0, *) {
+        AVSpeechUtterance(ssmlRepresentation: text) ?? AVSpeechUtterance(string: text)
+      } else {
+        AVSpeechUtterance(string: text)
+      }
+  
+//      let utterance = AVSpeechUtterance(string: text)
       utterance.voice = self.voice
       if let rate = rate {
         utterance.rate = rate
