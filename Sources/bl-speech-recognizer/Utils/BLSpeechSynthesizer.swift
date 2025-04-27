@@ -22,7 +22,7 @@ protocol BLSpeechSynthesizerDelegate: AnyObject {
 }
 
 class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
-  private let synthesizer = AVSpeechSynthesizer()
+  private var synthesizer: AVSpeechSynthesizer? = nil
   weak var delegate: BLSpeechSynthesizerDelegate?
   private var buffer = BLResponseStringBuffer(minLength: 10)
   private var isFinished = false
@@ -31,7 +31,7 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   private var pitchMultiplier: Float?
   
   var isSpeaking: Bool {
-    return synthesizer.isSpeaking
+    return synthesizer?.isSpeaking ?? false
   }
   
   init(language: String) {
@@ -46,7 +46,7 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   }
   
   func stop() {
-    synthesizer.stopSpeaking(at: AVSpeechBoundary.immediate)
+    synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
     buffer.reset()
   }
   
@@ -65,7 +65,8 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   }
   
   private func internalSpeak() {
-    guard synthesizer.isSpeaking == false else { return }
+    self.synthesizer = self.synthesizer ?? initializeSynthesizer()
+    guard synthesizer?.isSpeaking == false else { return }
     buffer.flush(all: isFinished) { text in
       let utterance = AVSpeechUtterance(string: text)
       utterance.voice = self.voice
@@ -75,9 +76,15 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
       if let pitchMultiplier = pitchMultiplier {
         utterance.pitchMultiplier = pitchMultiplier
       }
-      synthesizer.delegate = self
-      synthesizer.speak(utterance)
+      synthesizer?.delegate = self
+      synthesizer?.speak(utterance)
     }
+  }
+  
+  private func initializeSynthesizer() -> AVSpeechSynthesizer {
+    let synth = AVSpeechSynthesizer()
+    synth.usesApplicationAudioSession = false
+    return synth
   }
 }
 
