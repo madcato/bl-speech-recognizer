@@ -83,7 +83,9 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   
   private func initializeSynthesizer() -> AVSpeechSynthesizer {
     let synth = AVSpeechSynthesizer()
+    #if !os(macOS)
     synth.usesApplicationAudioSession = false
+    #endif
     return synth
   }
 }
