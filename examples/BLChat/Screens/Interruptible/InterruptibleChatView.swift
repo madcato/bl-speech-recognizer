@@ -15,8 +15,6 @@ struct InterruptibleChatView: View {
   
   var body: some View {
     VStack {
-      Text("Use your auricular to listen")
-        
       VolumeSlider()
         .padding()
         .frame(maxHeight: 50)
