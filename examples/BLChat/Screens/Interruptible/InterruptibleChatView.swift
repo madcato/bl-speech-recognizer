@@ -7,7 +7,6 @@
 
 import SwiftUI
 import MediaPlayer
-import UIKit
 
 // MARK: - View
 struct InterruptibleChatView: View {
@@ -15,9 +14,6 @@ struct InterruptibleChatView: View {
   
   var body: some View {
     VStack {
-      VolumeSlider()
-        .padding()
-        .frame(maxHeight: 50)
       // State
       HStack {
         Image(systemName: "mic")
@@ -40,7 +36,7 @@ struct InterruptibleChatView: View {
         Text(viewModel.recognizedText)
           .padding()
           .frame(maxWidth: .infinity, alignment: .leading)
-          .background(Color(.systemGray6))
+          .background(Color(.systemGray))
           .cornerRadius(10)
           .padding()
           .alert(isPresented: $viewModel.showError) {
@@ -58,7 +54,11 @@ struct InterruptibleChatView: View {
           }.tag(voice)
         }
       }
+#if os(iOS)
       .pickerStyle(WheelPickerStyle())
+#elseif os(macOS)
+      .pickerStyle(DefaultPickerStyle())
+#endif
       .onChange(of: viewModel.selectedVoice!, initial: true) { newVoice, _  in
         viewModel.selectVoice(newVoice)
       }
@@ -87,14 +87,6 @@ struct InterruptibleChatView: View {
     }
     .navigationTitle("Interruptible Chat")
   }
-}
-
-struct VolumeSlider: UIViewRepresentable {
-   func makeUIView(context: Context) -> MPVolumeView {
-      MPVolumeView(frame: .zero)
-   }
-
-   func updateUIView(_ view: MPVolumeView, context: Context) {}
 }
 
 // MARK: - Preview

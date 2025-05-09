@@ -140,7 +140,7 @@ final class BLSpeechRecognizer: NSObject {
       throw SpeechRecognizerError.recognitionTaskUnable
     } //5
     recognitionRequest.shouldReportPartialResults = shouldReportPartialResults  //6
-    if #available(iOS 13, *) {
+    if #available(iOS 13, macOS 10.15, *) {
       recognitionRequest.requiresOnDeviceRecognition = true
     }
     recognitionRequest.taskHint = taskType?.convert ?? SFSpeechRecognitionTaskHint.unspecified

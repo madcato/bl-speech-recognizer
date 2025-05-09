@@ -18,7 +18,7 @@ struct ContinuousSpeechRecognitionView: View {
         Text(viewModel.recognizedText)
           .padding()
           .frame(maxWidth: .infinity, alignment: .leading)
-          .background(Color(.systemGray6))
+          .background(Color(.systemGray))
           .cornerRadius(10)
           .padding()
           .alert(isPresented: $viewModel.showError) {

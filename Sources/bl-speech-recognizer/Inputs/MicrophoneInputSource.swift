@@ -90,7 +90,7 @@ class MicrophoneInputSource: InputSource {
   /// Configure the audio session specifically for capturing spoken audio.
   /// This method sets the category, mode, and options for best results during speech capture.
   func configureAudioSession() {
-#if !os(macOS)
+ #if !os(macOS)
     let audioSession = AVAudioSession.sharedInstance()
 
     do {
@@ -117,6 +117,6 @@ class MicrophoneInputSource: InputSource {
       // Logs an error if audio session properties can't be set
       print(SpeechRecognizerError.auidoPropertiesError.message)
     }
-    #endif
+ #endif
   }
 }
