@@ -29,8 +29,10 @@ class MicrophoneInputSource: InputSource {
 
     // Echo handling (AEC)
     if #available(iOS 16.0, *) {
+      #if !os(macOS)
       try audioEngine.inputNode.setVoiceProcessingEnabled(true)
       try audioEngine.outputNode.setVoiceProcessingEnabled(true)
+      #endif
       
       if #available(iOS 17.0, macOS 14, *) {
         audioEngine.inputNode.voiceProcessingOtherAudioDuckingConfiguration = .init(enableAdvancedDucking: true, duckingLevel: AVAudioVoiceProcessingOtherAudioDuckingConfiguration.Level.max)
