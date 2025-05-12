@@ -84,6 +84,7 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
       }
       synthesizer?.delegate = self
       synthesizer?.speak(utterance)
+//      print("[Zeta] Speak: \(text)")
     }
   }
   
@@ -112,4 +113,14 @@ extension BLSpeechSynthesizer: AVSpeechSynthesizerDelegate {
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
     delegate?.synthesizerFinished()
   }
+  
+//  @available(iOS 7.0, *)
+//  func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
+//      print("[Zeta] willSpeakRangeOfSpeechString: \(characterRange)")
+//  }
+
+//  @available(iOS 17.0, *)
+//  func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeak marker: AVSpeechSynthesisMarker, utterance: AVSpeechUtterance) {
+//    print("[Zeta] willSpeak marker: mark: \(marker.mark), byteSampleOffset: \(marker.byteSampleOffset), textRange: \(marker.textRange), phoneme: \(marker.phoneme), bookmarkName: \(marker.bookmarkName)")
+//  }
 }
