@@ -19,6 +19,7 @@ public struct Voice: Hashable {
 protocol BLSpeechSynthesizerDelegate: AnyObject {
   func synthesizerStarted()
   func synthesizerFinished()
+  func synthesizing(range: NSRange)
 }
 
 class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
@@ -119,8 +120,9 @@ extension BLSpeechSynthesizer: AVSpeechSynthesizerDelegate {
 //      print("[Zeta] willSpeakRangeOfSpeechString: \(characterRange)")
 //  }
 
-//  @available(iOS 17.0, *)
-//  func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeak marker: AVSpeechSynthesisMarker, utterance: AVSpeechUtterance) {
-//    print("[Zeta] willSpeak marker: mark: \(marker.mark), byteSampleOffset: \(marker.byteSampleOffset), textRange: \(marker.textRange), phoneme: \(marker.phoneme), bookmarkName: \(marker.bookmarkName)")
-//  }
+  @available(iOS 17.0, macOS 14.0, *)
+  func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeak marker: AVSpeechSynthesisMarker, utterance: AVSpeechUtterance) {
+    print("[Zeta] willSpeak marker: mark: \(marker.mark), byteSampleOffset: \(marker.byteSampleOffset), textRange: \(marker.textRange), phoneme: \(marker.phoneme), bookmarkName: \(marker.bookmarkName)")
+    delegate?.synthesizing(range: marker.textRange)
+  }
 }

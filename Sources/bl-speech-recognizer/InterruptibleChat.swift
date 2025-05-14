@@ -13,6 +13,7 @@ public enum InterrumpibleChatEvent {
   case startedSpeaking
   case stoppedSpeaking
   case detectedSpeaking
+  case synthesizingRange(NSRange)
 }
 
 /// The `InterruptibleChat` class is responsible for handling continuous speech recognition.
@@ -147,6 +148,9 @@ extension InterruptibleChat: BLSpeechSynthesizerDelegate {
     eventLaunch?(.stoppedSpeaking)
   }
   
+  func synthesizing(range: NSRange) {
+    eventLaunch?(.synthesizingRange(range))
+  }
   
 }
 
