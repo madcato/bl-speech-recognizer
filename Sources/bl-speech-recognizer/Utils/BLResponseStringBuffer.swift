@@ -22,8 +22,8 @@ class BLResponseStringBuffer {
   func flush(all: Bool, completionHandler: (String) -> Void) {
     guard all == false else {
       let text = accumulatedText
-      completionHandler(text)
       reset()
+      completionHandler(text)
       return
     }
     

@@ -67,15 +67,13 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   
   private func internalSpeak() {
     self.synthesizer = self.synthesizer ?? initializeSynthesizer()
-    guard synthesizer?.isSpeaking == false else { return }
     buffer.flush(all: isFinished) { text in
       let utterance = if #available(iOS 16.0, macOS 13.0, *) {
         AVSpeechUtterance(ssmlRepresentation: text) ?? AVSpeechUtterance(string: text)
       } else {
         AVSpeechUtterance(string: text)
       }
-  
-//      let utterance = AVSpeechUtterance(string: text)
+
       utterance.voice = self.voice
       if let rate = rate {
         utterance.rate = rate
@@ -85,7 +83,7 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
       }
       synthesizer?.delegate = self
       synthesizer?.speak(utterance)
-//      print("[Zeta] Speak: \(text)")
+      print("[Zeta] Speak: \(text)")
     }
   }
   
