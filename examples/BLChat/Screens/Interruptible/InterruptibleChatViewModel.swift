@@ -59,6 +59,8 @@ class InterruptibleChatViewModel: ObservableObject {
           self.speaking = false
         case .detectedSpeaking:
           self.listening = true
+        case .synthesizingRange(_):
+          break
         }
       }
     }

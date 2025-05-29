@@ -16,6 +16,11 @@ class MicrophoneInputSource: InputSource {
   private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest? = nil
   
   private var speakDetectedCallBack: (() -> Void)?
+  private var silenceDetectedCallBack: (() -> Void)?
+  
+  private let speakThreshold: Float32 = -50.0
+  private let silenceThreshold: Float32 = -20
+  private var accumulatedSilence: Double = 0
   
   init(speakDetected: (() -> Void)? = nil) {
     self.speakDetectedCallBack = speakDetected
@@ -26,13 +31,13 @@ class MicrophoneInputSource: InputSource {
     
     audioEngine = AVAudioEngine()
     audioEngine.isAutoShutdownEnabled = false
-
+    
     // Echo handling (AEC)
     if #available(iOS 16.0, *) {
-      #if !os(macOS)
+#if !os(macOS)
       try audioEngine.inputNode.setVoiceProcessingEnabled(true)
       try audioEngine.outputNode.setVoiceProcessingEnabled(true)
-      #endif
+#endif
       
       if #available(iOS 17.0, macOS 14, *) {
         audioEngine.inputNode.voiceProcessingOtherAudioDuckingConfiguration = .init(enableAdvancedDucking: true, duckingLevel: AVAudioVoiceProcessingOtherAudioDuckingConfiguration.Level.max)
@@ -53,21 +58,42 @@ class MicrophoneInputSource: InputSource {
     inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [self] (buffer, _) in
       self.recognitionRequest?.append(buffer)
       
-      // Calcula el nivel RMS para detectar actividad sonora.
-      if let channelData = buffer.floatChannelData {
-        var sum: Float32 = 0.0
-        for i in 0..<Int(buffer.frameLength) {
-          sum += fabs(channelData.pointee[i])
+      // Analyze the audio buffer for silence
+      let frameLength = Int(buffer.frameLength)
+      guard let channelData = buffer.floatChannelData?[0],
+            frameLength > 0 else { return }
+      
+      // Compute RMS (root mean square) of the audio samples
+      var sumSquares: Float = 0
+      for i in 0..<frameLength {
+        let sample = channelData[i]
+        sumSquares += sample * sample
+      }
+      let rms = sqrt(sumSquares / Float(frameLength))
+      // Convert to dB
+      let avgPower = 20 * log10(rms)
+      
+      // How long this buffer covers in seconds
+      let bufferDuration = Double(buffer.frameLength) / recordingFormat.sampleRate
+      
+      // If power is below threshold, count it as silence
+      if avgPower < self.silenceThreshold {
+        self.accumulatedSilence += bufferDuration
+        // If we've had at least 1 second of silence, fire the callback once
+        if self.accumulatedSilence >= 1.0 {
+          self.silenceDetectedCallBack?()
+          // Reset so we don't call repeatedly
+          self.accumulatedSilence = 0
         }
-        let average = sum / Float32(buffer.frameLength)
-        
-        // Define un umbral para detectar cuando el usuario habla.
-        let threshold: Float32 = 0.05
-        
-        if average > threshold {
-//          print("¡Hablando!")
-          speakDetectedCallBack?()
-        }
+      } else {
+        // Reset the counter on any non-silent audio
+        self.accumulatedSilence = 0
+      }
+      
+      // Speak detection callback
+      if avgPower > speakThreshold {
+        print("¡Hablando!")
+        speakDetectedCallBack?()
       }
     }
     

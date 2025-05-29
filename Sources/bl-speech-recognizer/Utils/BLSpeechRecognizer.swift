@@ -170,8 +170,15 @@ final class BLSpeechRecognizer: NSObject {
 //      print("Transcription: \(result?.bestTranscription), isFinal: \(result?.isFinal)")
       
       if let result = result {
-        let transcription = result.bestTranscription
+        let transcription: SFTranscription = result.bestTranscription
 //        print("Transcription: \(transcription), isFinal: \(result.isFinal)")
+          if #available(iOS 14.5, macOS 11.3, *) {
+              let metadata: SFSpeechRecognitionMetadata? = result.speechRecognitionMetadata
+//            print("Metadata: \(String(describing: metadata))")
+            print("Voice analytics: \(String(describing: metadata?.voiceAnalytics))")
+          } else {
+            // Fallback on earlier versions
+          }
         self.delegate?.recognized(text: transcription.formattedString, isFinal: result.isFinal)
       }
     }
