@@ -80,6 +80,7 @@ final class BLSpeechRecognizer: NSObject {
     guard let recognizer = SFSpeechRecognizer(locale: locale) else {
       throw SpeechRecognizerError.speechRecognizerNotAvailable
     }
+    recognizer.supportsOnDeviceRecognition = true
     self.speechRecognizer = recognizer
   }
   
@@ -165,6 +166,8 @@ final class BLSpeechRecognizer: NSObject {
         self.delegate?.finished()
         return
       }
+      
+//      print("Transcription: \(result?.bestTranscription), isFinal: \(result?.isFinal)")
       
       if let result = result {
         let transcription = result.bestTranscription
