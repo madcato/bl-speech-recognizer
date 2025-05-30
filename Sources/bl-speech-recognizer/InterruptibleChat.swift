@@ -32,6 +32,8 @@ public class InterruptibleChat: @unchecked Sendable {
   // Closure to be called upon an event appears
   private var eventLaunch: ((InterrumpibleChatEvent) -> Void)?
   
+  private var detectedSpeech = ""
+  
   public init() {}
   
   public struct Completion {
@@ -49,10 +51,10 @@ public class InterruptibleChat: @unchecked Sendable {
   public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void), event: ((InterrumpibleChatEvent) -> Void)? = nil) {
     self.completion = completion
     self.eventLaunch = event
-    let inputSource = InputSourceFactory.create(inputSource: inputType, speakDetectedCallback: userIsSpeaking)
+    let inputSource = InputSourceFactory.create(inputSource: inputType, speakDetectedCallback: userIsSpeaking, silenceDetectedCallback: silenceDetected)
     do {
       // Initializes the speech recognizer with the given input source and locale.
-      speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: false, task: .query)
+      speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: true, task: .query)
       speechRecognizer?.delegate = self
       // Starts the recognition process.
       speechRecognizer?.start()
@@ -110,6 +112,14 @@ public class InterruptibleChat: @unchecked Sendable {
     }
     eventLaunch?(.detectedSpeaking)
   }
+  
+  private func silenceDetected() {
+    guard detectedSpeech.isEmpty == false else {
+      return
+    }
+    self.completion(.success(.init(text: detectedSpeech, isFinal: true)))
+    detectedSpeech = ""
+  }
 }
 
 // MARK: - BLSpeechRecognizerDelegate
@@ -118,8 +128,7 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
   @MainActor func recognized(text: String, isFinal: Bool) {
     self.stopSynthesizing()
     
-    // Append the newly recognized text
-    self.completion(.success(.init(text: text, isFinal: true)))
+    self.detectedSpeech = text
   }
   
   func started() {

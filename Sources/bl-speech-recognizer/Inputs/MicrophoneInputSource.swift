@@ -19,11 +19,14 @@ class MicrophoneInputSource: InputSource {
   private var silenceDetectedCallBack: (() -> Void)?
   
   private let speakThreshold: Float32 = -50.0
-  private let silenceThreshold: Float32 = -20
+  private let silenceThreshold: Float32 = -40.0
   private var accumulatedSilence: Double = 0
+  private var timeToLaunchSilenceEvent: Double = 0.5 // seconds
   
-  init(speakDetected: (() -> Void)? = nil) {
+  init(speakDetected: (() -> Void)? = nil, silenceDetected: (() -> Void)? = nil, timeToLaunchSilenceEvent: Double = 0.5) {
     self.speakDetectedCallBack = speakDetected
+    self.silenceDetectedCallBack = silenceDetected
+    self.timeToLaunchSilenceEvent = timeToLaunchSilenceEvent
   }
   /// Initializes the microphone input by configuring the audio session.
   func initialize() throws -> SFSpeechRecognitionRequest? {
@@ -78,9 +81,10 @@ class MicrophoneInputSource: InputSource {
       
       // If power is below threshold, count it as silence
       if avgPower < self.silenceThreshold {
+//        print("Silencio")
         self.accumulatedSilence += bufferDuration
         // If we've had at least 1 second of silence, fire the callback once
-        if self.accumulatedSilence >= 1.0 {
+        if self.accumulatedSilence >= timeToLaunchSilenceEvent {
           self.silenceDetectedCallBack?()
           // Reset so we don't call repeatedly
           self.accumulatedSilence = 0
@@ -92,8 +96,9 @@ class MicrophoneInputSource: InputSource {
       
       // Speak detection callback
       if avgPower > speakThreshold {
-        print("¡Hablando!")
+//        print("¡Hablando!")
         speakDetectedCallBack?()
+        self.accumulatedSilence = 0
       }
     }
     

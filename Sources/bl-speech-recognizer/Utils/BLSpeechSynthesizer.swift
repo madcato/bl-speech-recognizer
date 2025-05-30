@@ -120,7 +120,7 @@ extension BLSpeechSynthesizer: AVSpeechSynthesizerDelegate {
 
   @available(iOS 17.0, macOS 14.0, *)
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeak marker: AVSpeechSynthesisMarker, utterance: AVSpeechUtterance) {
-    print("[Zeta] willSpeak marker: mark: \(marker.mark), byteSampleOffset: \(marker.byteSampleOffset), textRange: \(marker.textRange), phoneme: \(marker.phoneme), bookmarkName: \(marker.bookmarkName)")
+//    print("[Zeta] willSpeak marker: mark: \(marker.mark), byteSampleOffset: \(marker.byteSampleOffset), textRange: \(marker.textRange), phoneme: \(marker.phoneme), bookmarkName: \(marker.bookmarkName)")
     delegate?.synthesizing(range: marker.textRange)
   }
 }

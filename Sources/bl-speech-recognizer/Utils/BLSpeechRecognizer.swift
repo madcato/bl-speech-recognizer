@@ -175,7 +175,7 @@ final class BLSpeechRecognizer: NSObject {
           if #available(iOS 14.5, macOS 11.3, *) {
               let metadata: SFSpeechRecognitionMetadata? = result.speechRecognitionMetadata
 //            print("Metadata: \(String(describing: metadata))")
-            print("Voice analytics: \(String(describing: metadata?.voiceAnalytics))")
+//            print("Voice analytics: \(String(describing: metadata?.voiceAnalytics))")
           } else {
             // Fallback on earlier versions
           }
