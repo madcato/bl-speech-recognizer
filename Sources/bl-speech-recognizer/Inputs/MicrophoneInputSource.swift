@@ -18,8 +18,8 @@ class MicrophoneInputSource: InputSource {
   private var speakDetectedCallBack: (() -> Void)?
   private var silenceDetectedCallBack: (() -> Void)?
   
-  private let speakThreshold: Float32 = -20.0
-  private let silenceThreshold: Float32 = -40.0
+  private let speakThreshold: Float32 = -15.0
+  private let silenceThreshold: Float32 = -50.0
   private var accumulatedSilence: Double = 0
   private var timeToLaunchSilenceEvent: Double // seconds
   
@@ -96,6 +96,7 @@ class MicrophoneInputSource: InputSource {
       }
       
       // Speak detection callback
+//      print("[org.veladan.voice] avgPower: \(avgPower), speakThreshold: \(speakThreshold), silenceThreshold: \(silenceThreshold)")
       if avgPower > speakThreshold {
 //        print("org.veladan.voice ¡Hablando!")
         speakDetectedCallBack?()
