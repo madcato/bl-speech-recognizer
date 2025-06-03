@@ -171,7 +171,8 @@ final class BLSpeechRecognizer: NSObject {
       
       if let result = result {
         let transcription: SFTranscription = result.bestTranscription
-//        print("Transcription: \(transcription), isFinal: \(result.isFinal)")
+        let accumulated_confidence = transcription.segments.reduce(0.0) { $0 + $1.confidence }
+//        print("Transcription: org.veladan.voice: \(transcription.formattedString), isFinal: \(result.isFinal), num_segment: \(transcription.segments.count), confidence: \(accumulated_confidence)")
           if #available(iOS 14.5, macOS 11.3, *) {
               let metadata: SFSpeechRecognitionMetadata? = result.speechRecognitionMetadata
 //            print("Metadata: \(String(describing: metadata))")
@@ -179,7 +180,9 @@ final class BLSpeechRecognizer: NSObject {
           } else {
             // Fallback on earlier versions
           }
-        self.delegate?.recognized(text: transcription.formattedString, isFinal: result.isFinal)
+        if accumulated_confidence == 0.0 || self.shouldReportPartialResults == false {
+          self.delegate?.recognized(text: transcription.formattedString, isFinal: result.isFinal)
+        }
       }
     }
     )

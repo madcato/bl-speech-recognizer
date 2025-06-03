@@ -114,11 +114,13 @@ public class InterruptibleChat: @unchecked Sendable {
   }
   
   private func silenceDetected() {
+    let text = detectedSpeech
     guard detectedSpeech.isEmpty == false else {
       return
     }
-    self.completion(.success(.init(text: detectedSpeech, isFinal: true)))
     detectedSpeech = ""
+    // Launch event for detected speech
+    self.completion(.success(.init(text: text, isFinal: true)))
   }
 }
 
@@ -129,6 +131,7 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
     self.stopSynthesizing()
     
     self.detectedSpeech = text
+//    print("[org.veladan.voice] thread id: \(Thread.current), recognized speech: \(text)")
   }
   
   func started() {
