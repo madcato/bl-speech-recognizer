@@ -18,10 +18,10 @@ class MicrophoneInputSource: InputSource {
   private var speakDetectedCallBack: (() -> Void)?
   private var silenceDetectedCallBack: (() -> Void)?
   
-  private let speakThreshold: Float32 = -50.0
-  private let silenceThreshold: Float32 = -40.0
+  private let speakThreshold: Float32 = -15.0
+  private let silenceThreshold: Float32 = -50.0
   private var accumulatedSilence: Double = 0
-  private var timeToLaunchSilenceEvent: Double = 0.5 // seconds
+  private var timeToLaunchSilenceEvent: Double // seconds
   
   init(speakDetected: (() -> Void)? = nil, silenceDetected: (() -> Void)? = nil, timeToLaunchSilenceEvent: Double = 0.5) {
     self.speakDetectedCallBack = speakDetected
@@ -60,7 +60,7 @@ class MicrophoneInputSource: InputSource {
     let recordingFormat = inputNode.outputFormat(forBus: 0)  // 11
     inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [self] (buffer, _) in
       self.recognitionRequest?.append(buffer)
-      
+      return  // Removing this line, silence and VAD can be detected, but device Energy Impact raises
       // Analyze the audio buffer for silence
       let frameLength = Int(buffer.frameLength)
       guard let channelData = buffer.floatChannelData?[0],
@@ -85,9 +85,10 @@ class MicrophoneInputSource: InputSource {
         self.accumulatedSilence += bufferDuration
         // If we've had at least 1 second of silence, fire the callback once
         if self.accumulatedSilence >= timeToLaunchSilenceEvent {
-          self.silenceDetectedCallBack?()
           // Reset so we don't call repeatedly
+//          print("[org.veladan.voice] thread id: --> \(Thread.current)")
           self.accumulatedSilence = 0
+          self.silenceDetectedCallBack?()
         }
       } else {
         // Reset the counter on any non-silent audio
@@ -95,8 +96,9 @@ class MicrophoneInputSource: InputSource {
       }
       
       // Speak detection callback
+//      print("[org.veladan.voice] avgPower: \(avgPower), speakThreshold: \(speakThreshold), silenceThreshold: \(silenceThreshold)")
       if avgPower > speakThreshold {
-//        print("¡Hablando!")
+//        print("org.veladan.voice ¡Hablando!")
         speakDetectedCallBack?()
         self.accumulatedSilence = 0
       }

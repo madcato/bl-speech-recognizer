@@ -33,6 +33,9 @@ public class InterruptibleChat: @unchecked Sendable {
   private var eventLaunch: ((InterrumpibleChatEvent) -> Void)?
   
   private var detectedSpeech = ""
+  private var timer: Timer?
+  /// Time to detect silence before considering the speech as final.
+  private var waitTime: TimeInterval = 1.0
   
   public init() {}
   
@@ -51,7 +54,7 @@ public class InterruptibleChat: @unchecked Sendable {
   public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void), event: ((InterrumpibleChatEvent) -> Void)? = nil) {
     self.completion = completion
     self.eventLaunch = event
-    let inputSource = InputSourceFactory.create(inputSource: inputType, speakDetectedCallback: userIsSpeaking, silenceDetectedCallback: silenceDetected)
+    let inputSource = InputSourceFactory.create(inputSource: inputType)
     do {
       // Initializes the speech recognizer with the given input source and locale.
       speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: true, task: .query)
@@ -112,23 +115,28 @@ public class InterruptibleChat: @unchecked Sendable {
     }
     eventLaunch?(.detectedSpeaking)
   }
-  
-  private func silenceDetected() {
-    guard detectedSpeech.isEmpty == false else {
-      return
-    }
-    self.completion(.success(.init(text: detectedSpeech, isFinal: true)))
-    detectedSpeech = ""
-  }
 }
 
 // MARK: - BLSpeechRecognizerDelegate
 
 extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
   @MainActor func recognized(text: String, isFinal: Bool) {
-    self.stopSynthesizing()
-    
     self.detectedSpeech = text
+    
+    switch isFinal {
+    case true:
+      self.completion(.success(.init(text: self.detectedSpeech, isFinal: true)))
+      self.detectedSpeech = ""
+      break
+    case false:
+      userIsSpeaking()
+//      self.timer?.invalidate()
+//      self.timer = Timer.scheduledTimer(withTimeInterval: self.waitTime, repeats: false, block: { timer in
+//        self.completion(.success(.init(text: self.detectedSpeech, isFinal: true)))
+//        self.detectedSpeech = ""
+//      })
+    }
+//    print("[org.veladan.voice] thread id: \(Thread.current), recognized speech: \(text)")
   }
   
   func started() {

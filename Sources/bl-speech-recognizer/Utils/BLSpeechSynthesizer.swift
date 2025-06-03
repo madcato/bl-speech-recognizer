@@ -12,8 +12,8 @@ public struct Voice: Hashable {
   public var language: String
   public var identifier: String
   public var name: String
-  public var rate: Float? = nil
-  public var pitchMultiplier: Float? = nil
+  public var rate: Float? = nil  // Rate of speech, from 0.0 to 1.0, where 0.5 is the default rate.
+  public var pitchMultiplier: Float? = nil // Pitch multiplier, from 0.5 to 2.0, where 1.0 is the default pitch.
 }
 
 protocol BLSpeechSynthesizerDelegate: AnyObject {
@@ -68,12 +68,14 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   private func internalSpeak() {
     self.synthesizer = self.synthesizer ?? initializeSynthesizer()
     buffer.flush(all: isFinished) { text in
-      let utterance = if #available(iOS 16.0, macOS 13.0, *) {
-        AVSpeechUtterance(ssmlRepresentation: text) ?? AVSpeechUtterance(string: text)
-      } else {
-        AVSpeechUtterance(string: text)
-      }
+//      let utterance = if #available(iOS 16.0, macOS 13.0, *) {
+//        AVSpeechUtterance(ssmlRepresentation: text) ?? AVSpeechUtterance(string: text)
+//      } else {
+//        AVSpeechUtterance(string: text)
+//      }
 
+      let utterance = AVSpeechUtterance(string: text)
+      
       utterance.voice = self.voice
       if let rate = rate {
         utterance.rate = rate
@@ -82,8 +84,9 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
         utterance.pitchMultiplier = pitchMultiplier
       }
       synthesizer?.delegate = self
-      synthesizer?.speak(utterance)
-      print("[Zeta] Speak: \(text)")
+      DispatchQueue.global(qos: .background).async {
+        self.synthesizer?.speak(utterance)
+      }
     }
   }
   
