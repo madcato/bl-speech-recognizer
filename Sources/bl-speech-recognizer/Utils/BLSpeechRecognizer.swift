@@ -167,22 +167,21 @@ final class BLSpeechRecognizer: NSObject {
         return
       }
       
-//      print("Transcription: \(result?.bestTranscription), isFinal: \(result?.isFinal)")
+      //      print("Transcription: \(result?.bestTranscription), isFinal: \(result?.isFinal)")
       
       if let result = result {
         let transcription: SFTranscription = result.bestTranscription
         let accumulated_confidence = transcription.segments.reduce(0.0) { $0 + $1.confidence }
-//        print("Transcription: org.veladan.voice: \(transcription.formattedString), isFinal: \(result.isFinal), num_segment: \(transcription.segments.count), confidence: \(accumulated_confidence)")
-          if #available(iOS 14.5, macOS 11.3, *) {
-              let metadata: SFSpeechRecognitionMetadata? = result.speechRecognitionMetadata
-//            print("Metadata: \(String(describing: metadata))")
-//            print("Voice analytics: \(String(describing: metadata?.voiceAnalytics))")
-          } else {
-            // Fallback on earlier versions
-          }
-        if accumulated_confidence == 0.0 || self.shouldReportPartialResults == false {
-          self.delegate?.recognized(text: transcription.formattedString, isFinal: result.isFinal)
+        print("Transcription: org.veladan.voice: \(transcription.formattedString), isFinal: \(result.isFinal), num_segment: \(transcription.segments.count), confidence: \(accumulated_confidence)")
+        if #available(iOS 14.5, macOS 11.3, *) {
+          let metadata: SFSpeechRecognitionMetadata? = result.speechRecognitionMetadata
+          //            print("Metadata: \(String(describing: metadata))")
+          //            print("Voice analytics: \(String(describing: metadata?.voiceAnalytics))")
+        } else {
+          // Fallback on earlier versions
         }
+        
+        self.delegate?.recognized(text: transcription.formattedString, isFinal: accumulated_confidence > 0)
       }
     }
     )
@@ -191,9 +190,9 @@ final class BLSpeechRecognizer: NSObject {
   
   private func stopRecognition() {
     inputSource.stop()
-//    recognitionTask?.cancel()
-//    recognitionTask?.finish()
-//    recognitionTask = nil
+    //    recognitionTask?.cancel()
+    //    recognitionTask?.finish()
+    //    recognitionTask = nil
     recognitionRequest = nil
   }
   

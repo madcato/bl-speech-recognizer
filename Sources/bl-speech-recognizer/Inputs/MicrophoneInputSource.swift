@@ -60,7 +60,7 @@ class MicrophoneInputSource: InputSource {
     let recordingFormat = inputNode.outputFormat(forBus: 0)  // 11
     inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [self] (buffer, _) in
       self.recognitionRequest?.append(buffer)
-      
+      return  // Removing this line, silence and VAD can be detected, but device Energy Impact raises
       // Analyze the audio buffer for silence
       let frameLength = Int(buffer.frameLength)
       guard let channelData = buffer.floatChannelData?[0],

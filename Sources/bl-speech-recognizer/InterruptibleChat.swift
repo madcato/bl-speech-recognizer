@@ -131,6 +131,13 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
     self.stopSynthesizing()
     
     self.detectedSpeech = text
+    
+    switch isFinal {
+    case true:
+      self.completion(.success(.init(text: text, isFinal: true)))
+    case false:
+      userIsSpeaking()
+    }
 //    print("[org.veladan.voice] thread id: \(Thread.current), recognized speech: \(text)")
   }
   
