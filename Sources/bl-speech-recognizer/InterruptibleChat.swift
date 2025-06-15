@@ -35,7 +35,7 @@ public class InterruptibleChat: @unchecked Sendable {
   private var detectedSpeech = ""
   private var timer: Timer?
   /// Time to detect silence before considering the speech as final.
-  private var waitTime: TimeInterval = 0.5
+  private var waitTime: TimeInterval = 0.7
   
   public init() {}
   
