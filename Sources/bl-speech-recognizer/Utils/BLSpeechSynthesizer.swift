@@ -12,8 +12,8 @@ public struct Voice: Hashable {
   public var language: String
   public var identifier: String
   public var name: String
-  public var rate: Float? = nil
-  public var pitchMultiplier: Float? = nil
+  public var rate: Float? = nil  // Rate of speech, from 0.0 to 1.0, where 0.5 is the default rate.
+  public var pitchMultiplier: Float? = nil // Pitch multiplier, from 0.5 to 2.0, where 1.0 is the default pitch.
 }
 
 protocol BLSpeechSynthesizerDelegate: AnyObject {
