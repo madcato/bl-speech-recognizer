@@ -35,7 +35,7 @@ public class InterruptibleChat: @unchecked Sendable {
   private var detectedSpeech = ""
   private var timer: Timer?
   /// Time to detect silence before considering the speech as final.
-  private var waitTime: TimeInterval = 0.7
+  private var waitTime: TimeInterval = 1.0
   
   public init() {}
   
@@ -125,15 +125,16 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
     
     switch isFinal {
     case true:
-//      self.completion(.success(.init(text: text, isFinal: true)))
+      self.completion(.success(.init(text: self.detectedSpeech, isFinal: true)))
+      self.detectedSpeech = ""
       break
     case false:
       userIsSpeaking()
-      self.timer?.invalidate()
-      self.timer = Timer.scheduledTimer(withTimeInterval: self.waitTime, repeats: false, block: { timer in
-        self.completion(.success(.init(text: self.detectedSpeech, isFinal: true)))
-        self.detectedSpeech = ""
-      })
+//      self.timer?.invalidate()
+//      self.timer = Timer.scheduledTimer(withTimeInterval: self.waitTime, repeats: false, block: { timer in
+//        self.completion(.success(.init(text: self.detectedSpeech, isFinal: true)))
+//        self.detectedSpeech = ""
+//      })
     }
 //    print("[org.veladan.voice] thread id: \(Thread.current), recognized speech: \(text)")
   }
