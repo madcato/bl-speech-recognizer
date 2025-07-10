@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2025-07-10
+
+### Fixed
+- Let ios sdk to decide when user has stoped talking
+- Doc rate and pithMultiplier
+- Increase VAD wait time
+- 0.5 seconds detection. Fixed duplicate detections
+
+### Removed
+- VAD with timer
+- Utterances ssml
+- Silence detection because high energy impact on device battery
+
 ## [0.8.0] - 2025-06-30
 
 ### Added
