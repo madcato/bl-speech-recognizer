@@ -71,6 +71,10 @@ final class BLSpeechRecognizer: NSObject {
   // When **false**, the recognized text callback is only called once.
   // When **true**, every recognized text is passed to the callback inmediately.
   private let shouldReportPartialResults: Bool
+  // Timer to detect silence (but it's really no silence but lack of recognition, beware!)
+  private var silenceTimer: Timer?
+  // String to accumulate partial recognitions
+  private var lastTranscription: String = ""
   
   public init(inputSource: InputSource, locale: Locale = .current, wait time: Double? = 0.8, shouldReportPartialResults: Bool = true, task taskType: BLTaskType? = nil) throws {
     self.waitTime = time
@@ -170,22 +174,38 @@ final class BLSpeechRecognizer: NSObject {
       //      print("Transcription: \(result?.bestTranscription), isFinal: \(result?.isFinal)")
       
       if let result = result {
-        let transcription: SFTranscription = result.bestTranscription
-        let accumulated_confidence = transcription.segments.reduce(0.0) { $0 + $1.confidence }
-        print("Transcription: org.veladan.voice: \(transcription.formattedString), isFinal: \(result.isFinal), num_segment: \(transcription.segments.count), confidence: \(accumulated_confidence)")
-        if #available(iOS 14.5, macOS 11.3, *) {
-          let metadata: SFSpeechRecognitionMetadata? = result.speechRecognitionMetadata
-          //            print("Metadata: \(String(describing: metadata))")
-          //            print("Voice analytics: \(String(describing: metadata?.voiceAnalytics))")
-        } else {
-          // Fallback on earlier versions
-        }
+                let transcription: SFTranscription = result.bestTranscription
+                let accumulated_confidence = transcription.segments.reduce(0.0) { $0 + $1.confidence }
+        //        print("Transcription: org.veladan.voice: \(transcription.formattedString), isFinal: \(result.isFinal), num_segment: \(transcription.segments.count), confidence: \(accumulated_confidence)")
+        //        if #available(iOS 14.5, macOS 11.3, *) {
+        //          let metadata: SFSpeechRecognitionMetadata? = result.speechRecognitionMetadata
+        //          //            print("Metadata: \(String(describing: metadata))")
+        //          //            print("Voice analytics: \(String(describing: metadata?.voiceAnalytics))")
+        //        } else {
+        //          // Fallback on earlier versions
+        //        }
+        //
+        //        self.delegate?.recognized(text: transcription.formattedString, isFinal: accumulated_confidence > 0)
         
-        self.delegate?.recognized(text: transcription.formattedString, isFinal: accumulated_confidence > 0)
+        if accumulated_confidence == 0 {
+          let currentTranscription = result.bestTranscription.formattedString
+          if currentTranscription != self.lastTranscription {
+            self.resetSilenceTimer()  // Reinicia si hay nuevo habla
+            self.lastTranscription = currentTranscription
+          }
+          self.delegate?.recognized(text: self.lastTranscription, isFinal: false)
+        }
       }
     }
     )
     self.delegate?.started()
+  }
+  
+  private func resetSilenceTimer() {
+    silenceTimer?.invalidate()
+    silenceTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: false) { _ in
+      self.delegate?.recognized(text: self.lastTranscription, isFinal: true)
+    }
   }
   
   private func stopRecognition() {
