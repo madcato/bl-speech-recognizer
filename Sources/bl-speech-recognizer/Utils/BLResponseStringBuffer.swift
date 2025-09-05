@@ -29,12 +29,9 @@ class BLResponseStringBuffer {
     
     // Define a character set containing punctuation characters
     let punctuationSet = CharacterSet.punctuationCharacters
-    var rangeOfPunctuation: Range<String.Index>?
 
     // Find the range of the first occurrence of any punctuation character
-    if let range = accumulatedText.rangeOfCharacter(from: punctuationSet) {
-      rangeOfPunctuation = range
-    }
+    let rangeOfPunctuation: Range<String.Index>? = accumulatedText.rangeOfCharacter(from: punctuationSet)
     
     if let punctuationRange = rangeOfPunctuation {
       let text = accumulatedText[..<punctuationRange.lowerBound]

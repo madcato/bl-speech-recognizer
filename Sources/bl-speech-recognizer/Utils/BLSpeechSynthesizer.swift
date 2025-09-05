@@ -25,7 +25,7 @@ protocol BLSpeechSynthesizerDelegate: AnyObject {
 class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   private var synthesizer: AVSpeechSynthesizer? = nil
   weak var delegate: BLSpeechSynthesizerDelegate?
-  private var buffer = BLResponseStringBuffer(minLength: 10)
+  private var buffer = BLResponseSSMLStringBuffer(minLength: 10)
   private var isFinished = false
   private var voice: AVSpeechSynthesisVoice!
   private var rate: Float?
@@ -68,13 +68,14 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   private func internalSpeak() {
     self.synthesizer = self.synthesizer ?? initializeSynthesizer()
     buffer.flush(all: isFinished) { text in
-//      let utterance = if #available(iOS 16.0, macOS 13.0, *) {
-//        AVSpeechUtterance(ssmlRepresentation: text) ?? AVSpeechUtterance(string: text)
-//      } else {
-//        AVSpeechUtterance(string: text)
-//      }
-
-      let utterance = AVSpeechUtterance(string: text)
+      print("[voice][SSML] \(text)")
+//      let ssmlText = "<?xml version=\"1.0\"?>\(text)"
+      let utterance = if #available(iOS 16.0, macOS 13.0, *) {
+        AVSpeechUtterance(ssmlRepresentation: text.trimmingCharacters(in: .whitespacesAndNewlines)) ?? AVSpeechUtterance(string: text)
+      } else {
+        AVSpeechUtterance(string: text)
+      }
+      
       
       utterance.voice = self.voice
       if let rate = rate {
