@@ -7,7 +7,7 @@
 
 import Foundation
 
-class BLResponseSSMLStringBuffer {
+class BLResponseSSMLStringBuffer: BLStringBuffer {
   var accumulatedText: String = ""
   private var minLength: Int
   
@@ -22,7 +22,7 @@ class BLResponseSSMLStringBuffer {
   func flush(all: Bool, completionHandler: (String) -> Void) {
     guard all == false else {
       let text = accumulatedText
-      reset()
+      accumulatedText = ""
       completionHandler(text)
       return
     }
@@ -39,9 +39,5 @@ class BLResponseSSMLStringBuffer {
         completionHandler(text)
       }
     }
-  }
-
-  func reset() {
-    accumulatedText = ""
   }
 }

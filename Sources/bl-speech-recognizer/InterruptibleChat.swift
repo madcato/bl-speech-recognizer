@@ -76,18 +76,18 @@ public class InterruptibleChat: @unchecked Sendable {
   
   /// Starts or continues the speech synthesizing process and cleans up resources.
   @MainActor
-  public func synthesize(text: String, isFinal: Bool, locale: Locale) {
+  public func synthesize(text: String, isFinal: Bool, locale: Locale, activateSSML: Bool = false) {
     if speechSynthesizer == nil {
-      speechSynthesizer = BLSpeechSynthesizer(language: locale.identifier)
+      speechSynthesizer = BLSpeechSynthesizer(language: locale.identifier, activateSSML: activateSSML)
       speechSynthesizer.delegate = self
     }
     speechSynthesizer.speak(text, isFinal: isFinal)
   }
   
   @MainActor
-  public func synthesize(text: String, isFinal: Bool, voice: Voice) {
+  public func synthesize(text: String, isFinal: Bool, voice: Voice, activateSSML: Bool = false) {
     if speechSynthesizer == nil {
-      speechSynthesizer = BLSpeechSynthesizer(voice: voice)
+      speechSynthesizer = BLSpeechSynthesizer(voice: voice, activateSSML: activateSSML)
       speechSynthesizer.delegate = self
     }
     speechSynthesizer.speak(text, isFinal: isFinal)

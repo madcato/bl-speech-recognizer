@@ -25,7 +25,7 @@ protocol BLSpeechSynthesizerDelegate: AnyObject {
 class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   private var synthesizer: AVSpeechSynthesizer? = nil
   weak var delegate: BLSpeechSynthesizerDelegate?
-  private var buffer = BLResponseSSMLStringBuffer(minLength: 10)
+  private var buffer: BLStringBuffer!
   private var isFinished = false
   private var voice: AVSpeechSynthesisVoice!
   private var rate: Float?
@@ -35,17 +35,26 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
     return synthesizer?.isSpeaking ?? false
   }
   
-  init(language: String) {
+  init(language: String, activateSSML: Bool = false) {
     self.voice = AVSpeechSynthesisVoice(language: language)
+    self.buffer = Self.activateSSML(activateSSML)
   }
   
-  init(voice: Voice) {
+  init(voice: Voice, activateSSML: Bool = false) {
     let voiceIdentifier = voice.identifier
     self.rate = voice.rate
     self.pitchMultiplier = voice.pitchMultiplier
     self.voice = AVSpeechSynthesisVoice(identifier: voiceIdentifier)
+    self.buffer = Self.activateSSML(activateSSML)
   }
   
+  private static func activateSSML(_ activate: Bool) -> BLStringBuffer {
+    if activate {
+      return BLResponseSSMLStringBuffer(minLength: 10)
+    } else {
+      return BLResponseStringBuffer(minLength: 10)
+    }
+  }
   func stop() {
     synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
     buffer.reset()

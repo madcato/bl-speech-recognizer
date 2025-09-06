@@ -7,7 +7,7 @@
 
 import Foundation
 
-class BLResponseStringBuffer {
+class BLResponseStringBuffer: BLStringBuffer {
   var accumulatedText: String = ""
   private var minLength: Int
   
@@ -22,7 +22,7 @@ class BLResponseStringBuffer {
   func flush(all: Bool, completionHandler: (String) -> Void) {
     guard all == false else {
       let text = accumulatedText
-      reset()
+      accumulatedText = ""
       completionHandler(text)
       return
     }
@@ -39,9 +39,5 @@ class BLResponseStringBuffer {
       accumulatedText = String(accumulatedText[indexAfterPunctuation...])
       completionHandler(String(text))
     }
-  }
-
-  func reset() {
-    accumulatedText = ""
   }
 }
