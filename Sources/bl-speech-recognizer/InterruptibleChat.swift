@@ -100,7 +100,7 @@ public class InterruptibleChat: @unchecked Sendable {
   }
   
   /// List all available voices
-  public func listVoices() -> [Voice] {
+  public static func listVoices() -> [Voice] {
     return BLSpeechSynthesizer.availableVoices()
   }
   

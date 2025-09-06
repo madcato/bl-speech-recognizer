@@ -7,6 +7,40 @@
 //
 
 import AVFoundation
+import AVFAudio
+
+@available(macOS 10.15, *)
+public enum VoiceGender: String, CaseIterable {
+  case male = "Male"
+  case female = "Female"
+  case unspecified = "Unspecified"
+}
+
+public enum VoiceQuality: String, CaseIterable {
+  case `default` = "Default"
+  case enhanced = "Enhanced"
+  case premium = "Premium"
+}
+
+extension AVSpeechSynthesisVoiceGender {
+  func toInternal() -> VoiceGender {
+    switch self {
+    case .unspecified: return .unspecified
+    case .male: return .male
+    case .female: return .female
+    }
+  }
+}
+
+extension AVSpeechSynthesisVoiceQuality {
+  func toInternal() -> VoiceQuality {
+    switch self {
+    case .default: return .default
+    case .enhanced: return .enhanced
+    case .premium: return .premium
+    }
+  }
+}
 
 public struct Voice: Hashable {
   public var language: String
@@ -14,6 +48,10 @@ public struct Voice: Hashable {
   public var name: String
   public var rate: Float? = nil  // Rate of speech, from 0.0 to 1.0, where 0.5 is the default rate.
   public var pitchMultiplier: Float? = nil // Pitch multiplier, from 0.5 to 2.0, where 1.0 is the default pitch.
+  @available(macOS 10.15, *)
+  public var gender: VoiceGender
+  @available(macOS 10.14, *)
+  public var quality: VoiceQuality
 }
 
 protocol BLSpeechSynthesizerDelegate: AnyObject {
@@ -70,14 +108,16 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
     return AVSpeechSynthesisVoice.speechVoices().map { voice in
       Voice(language: voice.language,
             identifier: voice.identifier,
-            name: voice.name)
+            name: voice.name,
+            gender: voice.gender.toInternal(),
+            quality: voice.quality.toInternal())
     }
   }
   
   private func internalSpeak() {
     self.synthesizer = self.synthesizer ?? initializeSynthesizer()
     buffer.flush(all: isFinished) { text in
-      print("[voice][SSML] \(text)")
+//      print("[voice][SSML] \(text)")
 //      let ssmlText = "<?xml version=\"1.0\"?>\(text)"
       let utterance = if #available(iOS 16.0, macOS 13.0, *) {
         AVSpeechUtterance(ssmlRepresentation: text.trimmingCharacters(in: .whitespacesAndNewlines)) ?? AVSpeechUtterance(string: text)
