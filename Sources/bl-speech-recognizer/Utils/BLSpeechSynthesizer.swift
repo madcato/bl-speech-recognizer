@@ -65,7 +65,7 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   weak var delegate: BLSpeechSynthesizerDelegate?
   private var buffer: BLStringBuffer!
   private var isFinished = false
-  private var voice: AVSpeechSynthesisVoice!
+  var voice: AVSpeechSynthesisVoice!
   private var rate: Float?
   private var pitchMultiplier: Float?
   
@@ -92,6 +92,13 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
     } else {
       return BLResponseStringBuffer(minLength: 10)
     }
+  }
+  
+  func setVoice(_ voice: Voice) {
+    let voiceIdentifier = voice.identifier
+    self.rate = voice.rate
+    self.pitchMultiplier = voice.pitchMultiplier
+    self.voice = AVSpeechSynthesisVoice(identifier: voiceIdentifier)
   }
   func stop() {
     synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)

@@ -57,7 +57,7 @@ class MicrophoneInputSource: InputSource {
       throw SpeechRecognizerError.notAvailableInputs
     }
     /// Set up the format for recording and add a tap to the audio engine's input node
-    let recordingFormat = inputNode.outputFormat(forBus: 0)  // 11
+    let recordingFormat = inputNode.inputFormat(forBus: 0)  // 11
     inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [self] (buffer, _) in
       self.recognitionRequest?.append(buffer)
       return  // Removing this line, silence and VAD can be detected, but device Energy Impact raises

@@ -90,6 +90,7 @@ public class InterruptibleChat: @unchecked Sendable {
       speechSynthesizer = BLSpeechSynthesizer(voice: voice, activateSSML: activateSSML)
       speechSynthesizer.delegate = self
     }
+    speechSynthesizer.setVoice(voice)
     speechSynthesizer.speak(text, isFinal: isFinal)
   }
   
