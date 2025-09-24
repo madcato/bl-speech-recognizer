@@ -19,10 +19,15 @@ class InterruptibleChatViewModel: ObservableObject {
   @Published var listening: Bool = false
   @Published var speaking: Bool = false
 
-  private var interruptibleChat = InterruptibleChat()
+  private var interruptibleChat: InterruptibleChat
   
   init() {
-    self.availableVoices = InterruptibleChat().listVoices().filter({ voice in
+    do {
+      self.interruptibleChat = try InterruptibleChat(inputType: .microphone, activateSSML: false)
+    } catch {
+      fatalError("Error creating InterruptibleChat: \(error)")
+    }
+    self.availableVoices = InterruptibleChat.listVoices().filter({ voice in
       voice.language == "es-ES" || voice.language == "en-US"
     })
     self.selectedVoice = availableVoices.first
@@ -34,9 +39,7 @@ class InterruptibleChatViewModel: ObservableObject {
     
     synthesize()
     
-    let locale =  Locale(identifier: selectedVoice?.language ?? "en-US")
-    
-    interruptibleChat.start(inputType: .microphone, locale: locale, completion: { result in
+    interruptibleChat.start(completion: { result in
       switch result {
       case .success(let completion):
         self.recognizedText = completion.text
@@ -77,12 +80,13 @@ class InterruptibleChatViewModel: ObservableObject {
   func selectVoice(_ voice: Voice) {
     stopRecording()
     selectedVoice = voice
-    interruptibleChat.resetSynthesizer()
   }
   
   func showError(_ errorText: String) {
-    self.errorText = errorText
-    showError = true
+    DispatchQueue.main.async {
+      self.errorText = errorText
+      self.showError = true
+    }
   }
 
   private func synthesize() {

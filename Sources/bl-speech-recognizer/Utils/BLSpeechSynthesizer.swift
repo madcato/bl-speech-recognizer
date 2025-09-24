@@ -60,14 +60,22 @@ protocol BLSpeechSynthesizerDelegate: AnyObject {
   func synthesizing(range: NSRange)
 }
 
-class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
+protocol SpeechSynthesizerProtocol {
+  func speak(_ text: String, isFinal: Bool, voice: Voice?)
+  func pause()
+  func resume()
+  func stop()
+}
+
+class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol, @unchecked Sendable {
   private var synthesizer: AVSpeechSynthesizer? = nil
   weak var delegate: BLSpeechSynthesizerDelegate?
   private var buffer: BLStringBuffer!
   private var isFinished = false
-  var voice: AVSpeechSynthesisVoice!
+  private var voice: AVSpeechSynthesisVoice!
   private var rate: Float?
   private var pitchMultiplier: Float?
+  private var activateSSML: Bool = false
   
   var isSpeaking: Bool {
     return synthesizer?.isSpeaking ?? false
@@ -76,39 +84,32 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
   init(language: String, activateSSML: Bool = false) {
     self.voice = AVSpeechSynthesisVoice(language: language)
     self.buffer = Self.activateSSML(activateSSML)
+    self.activateSSML = activateSSML
   }
   
-  init(voice: Voice, activateSSML: Bool = false) {
-    let voiceIdentifier = voice.identifier
-    self.rate = voice.rate
-    self.pitchMultiplier = voice.pitchMultiplier
-    self.voice = AVSpeechSynthesisVoice(identifier: voiceIdentifier)
+  init(activateSSML: Bool = false) {
     self.buffer = Self.activateSSML(activateSSML)
+    self.activateSSML = activateSSML
   }
   
-  private static func activateSSML(_ activate: Bool) -> BLStringBuffer {
-    if activate {
-      return BLResponseSSMLStringBuffer(minLength: 10)
-    } else {
-      return BLResponseStringBuffer(minLength: 10)
-    }
-  }
-  
-  func setVoice(_ voice: Voice) {
-    let voiceIdentifier = voice.identifier
-    self.rate = voice.rate
-    self.pitchMultiplier = voice.pitchMultiplier
-    self.voice = AVSpeechSynthesisVoice(identifier: voiceIdentifier)
-  }
-  func stop() {
-    synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
-    buffer.reset()
-  }
-  
-  func speak(_ str: String, isFinal: Bool) {
+  func speak(_ str: String, isFinal: Bool, voice: Voice? = nil) {
+    setVoice(voice)
     isFinished = isFinal
     buffer.onMessageReceived(text: str)
     internalSpeak()
+  }
+  
+  func pause() {
+    synthesizer?.stopSpeaking(at: AVSpeechBoundary.word)
+  }
+  
+  func resume() {
+    internalSpeak()
+  }
+  
+  func stop() {
+    synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
+    buffer.reset()
   }
   
   static func availableVoices() -> [Voice] {
@@ -126,12 +127,11 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
     buffer.flush(all: isFinished) { text in
 //      print("[voice][SSML] \(text)")
 //      let ssmlText = "<?xml version=\"1.0\"?>\(text)"
-      let utterance = if #available(iOS 16.0, macOS 13.0, *) {
+      let utterance = if #available(iOS 16.0, macOS 13.0, *), activateSSML == true {
         AVSpeechUtterance(ssmlRepresentation: text.trimmingCharacters(in: .whitespacesAndNewlines)) ?? AVSpeechUtterance(string: text)
       } else {
         AVSpeechUtterance(string: text)
       }
-      
       
       utterance.voice = self.voice
       if let rate = rate {
@@ -154,6 +154,23 @@ class BLSpeechSynthesizer: NSObject, @unchecked Sendable {
     #endif
     return synth
   }
+  
+  private func setVoice(_ voice: Voice?) {
+    if let voice = voice {
+      let voiceIdentifier = voice.identifier
+      self.rate = voice.rate
+      self.pitchMultiplier = voice.pitchMultiplier
+      self.voice = AVSpeechSynthesisVoice(identifier: voiceIdentifier)
+    }
+  }
+  
+  private static func activateSSML(_ activate: Bool) -> BLStringBuffer {
+    if activate {
+      return BLResponseSSMLStringBuffer(minLength: 10)
+    } else {
+      return BLResponseStringBuffer(minLength: 10)
+    }
+  }
 }
 
 extension BLSpeechSynthesizer: AVSpeechSynthesizerDelegate {
@@ -172,15 +189,9 @@ extension BLSpeechSynthesizer: AVSpeechSynthesizerDelegate {
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
     delegate?.synthesizerFinished()
   }
-  
-//  @available(iOS 7.0, *)
-//  func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
-//      print("[Zeta] willSpeakRangeOfSpeechString: \(characterRange)")
-//  }
 
   @available(iOS 17.0, macOS 14.0, *)
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeak marker: AVSpeechSynthesisMarker, utterance: AVSpeechUtterance) {
-//    print("[Zeta] willSpeak marker: mark: \(marker.mark), byteSampleOffset: \(marker.byteSampleOffset), textRange: \(marker.textRange), phoneme: \(marker.phoneme), bookmarkName: \(marker.bookmarkName)")
     delegate?.synthesizing(range: marker.textRange)
   }
 }

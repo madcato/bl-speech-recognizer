@@ -29,7 +29,7 @@ protocol BLSpeechRecognizerDelegate: AnyObject {
 }
 
 protocol BLSpeechRecognizerInput {
-  func requestAuthorization(_ onFinish: @escaping (Bool) -> Void)
+  func requestAuthorization(_ onFinish: @escaping (Result<Bool, Error>) throws -> Void)
   func start()
   func resume()
   func pause()
@@ -51,7 +51,7 @@ enum BLTaskType {
   }
 }
 
-final class BLSpeechRecognizer: NSObject {
+final class BLSpeechRecognizer: NSObject, BLSpeechRecognizerInput {
   public weak var delegate: BLSpeechRecognizerDelegate?
   
   /// Recognizer
@@ -138,6 +138,16 @@ final class BLSpeechRecognizer: NSObject {
     stopRecognition()
   }
   
+  @MainActor
+  func resume() {
+    start()
+  }
+  
+  @MainActor
+  func pause() {
+    stop()
+  }
+
   @MainActor
   private func startRecognition() throws {
     recognitionRequest = try self.inputSource.initialize()  //3

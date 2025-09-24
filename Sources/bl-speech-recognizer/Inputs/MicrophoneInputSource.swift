@@ -52,6 +52,12 @@ class MicrophoneInputSource: InputSource {
     let inputNode = audioEngine.inputNode
     inputNode.isVoiceProcessingAGCEnabled = true
     
+    let ibuses = inputNode.numberOfInputs
+    let obuses = inputNode.numberOfOutputs
+    
+    print("Number of Inputs: \(ibuses)")
+    print("Number of Outputs: \(obuses)")
+    
     /// Check if the input node can provide audio data
     if(inputNode.inputFormat(forBus: 0).channelCount == 0) {
       throw SpeechRecognizerError.notAvailableInputs
@@ -131,7 +137,7 @@ class MicrophoneInputSource: InputSource {
     do {
       try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                    mode: .voiceChat,
-                                   options: [.allowBluetooth, .defaultToSpeaker, .allowAirPlay, .allowBluetoothA2DP])
+                                   options: [.defaultToSpeaker])  // [.allowBluetooth, .defaultToSpeaker, .allowAirPlay, .allowBluetoothA2DP])
 #if os(watchOS)
     audioSession.activate(completionHandler: { done, error in
       if let error = error {
