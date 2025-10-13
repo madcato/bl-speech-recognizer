@@ -15,6 +15,7 @@ enum SpeechRecognizerError: Error, LocalizedError {
   case notDetermined
   case recognitionTaskUnable
   case notAvailableInputs
+  case auidoPropertiesError(String)
   case audioInputFailure(String)
   case pauseFailed(String)
   case resumeFailed(String)
@@ -27,6 +28,7 @@ enum SpeechRecognizerError: Error, LocalizedError {
     case .notDetermined: return "Speech recognition authorization is not determined."
     case .recognitionTaskUnable: return "Unable to create recognition task."
     case .notAvailableInputs: return "No available audio inputs."
+    case .auidoPropertiesError(let message): return "Audio properties are not valid: \(message)"
     case .audioInputFailure(let message): return "Audio input error: \(message)"
     case .pauseFailed(let message): return "Failed to pause recognition: \(message)"
     case .resumeFailed(let message): return "Failed to resume recognition: \(message)"

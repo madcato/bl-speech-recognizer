@@ -63,7 +63,10 @@ class MicrophoneInputSource: InputSource {
       throw SpeechRecognizerError.notAvailableInputs
     }
     /// Set up the format for recording and add a tap to the audio engine's input node
-    let recordingFormat = inputNode.inputFormat(forBus: 0)  // 11
+    let recordingFormat = inputNode.outputFormat(forBus: 0)  // 11
+    guard recordingFormat.sampleRate > 0 else {
+        throw SpeechRecognizerError.audioInputFailure("Invalid audio format: Sample rate is 0 Hz. Don't use iOS Simulator.")
+    }
     inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [self] (buffer, _) in
       self.recognitionRequest?.append(buffer)
       return  // Removing this line, silence and VAD can be detected, but device Energy Impact raises
@@ -156,7 +159,7 @@ class MicrophoneInputSource: InputSource {
 #endif
     } catch {
       // Logs an error if audio session properties can't be set
-      print(SpeechRecognizerError.auidoPropertiesError.message)
+      fatalError(SpeechRecognizerError.auidoPropertiesError(error.localizedDescription).errorDescription ?? "Unknown error.")
     }
  #endif
   }

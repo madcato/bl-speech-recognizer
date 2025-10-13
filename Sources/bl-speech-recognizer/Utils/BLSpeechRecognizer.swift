@@ -76,13 +76,15 @@ final class BLSpeechRecognizer: NSObject, BLSpeechRecognizerInput {
   // String to accumulate partial recognitions
   private var lastTranscription: String = ""
   
-  public init(inputSource: InputSource, locale: Locale = .current, wait time: Double? = 0.8, shouldReportPartialResults: Bool = true, task taskType: BLTaskType? = nil) throws {
+  public init(inputSource: InputSource, locale: Locale = .current, wait time: Double? = 0.8, shouldReportPartialResults: Bool = true, task taskType: BLTaskType? = nil) {
     self.waitTime = time
     self.taskType = taskType
     self.inputSource = inputSource
     self.shouldReportPartialResults = shouldReportPartialResults
     guard let recognizer = SFSpeechRecognizer(locale: locale) else {
-      throw SpeechRecognizerError.speechRecognizerNotAvailable
+      // TODO: Solve error handling: all delegates or all throws. Don't throw on constructor
+//      throw SpeechRecognizerError.speechRecognizerNotAvailable
+      fatalError()
     }
     recognizer.supportsOnDeviceRecognition = true
     self.speechRecognizer = recognizer

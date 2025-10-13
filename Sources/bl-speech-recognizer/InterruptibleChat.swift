@@ -7,6 +7,21 @@
 
 import Foundation
 
+public protocol InterruptibleChatProtocol {
+  @MainActor
+  func start(completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
+                    event: ((InterrumpibleChatEvent) -> Void)?)
+  @MainActor
+  func stop()
+  @MainActor
+  func synthesize(text: String, isFinal: Bool)
+  @MainActor
+  func synthesize(text: String, isFinal: Bool, voice: Voice, activateSSML: Bool)
+  @MainActor
+  func stopSynthesizing()
+  static func listVoices() -> [Voice]
+}
+
 public enum InterrumpibleChatEvent {
   case startedListening
   case stoppedListening
@@ -24,7 +39,7 @@ public enum InterrumpibleChatEvent {
 /// The text to be synthesize can be added as a stream. This class store the text to be synthesized.
 /// It can be used in long interactions with the user, like a chat.
 /// It manages the lifecycle of speech recognition using a `BLSpeechRecognizer` instance and informs the client of results and events.
-public class InterruptibleChat: @unchecked Sendable {
+public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
   public struct Completion {
     public let text: String
     public let isFinal: Bool
@@ -45,13 +60,13 @@ public class InterruptibleChat: @unchecked Sendable {
   /// Time to detect silence before considering the speech as final.
   private var waitTime: TimeInterval = 1.0
   
-  public init(inputType: InputSourceType, locale: Locale = .current, activateSSML: Bool) throws {
+  public init(inputType: InputSourceType, locale: Locale = .current, activateSSML: Bool) {
     // Synthesizer construction
     speechSynthesizer = BLSpeechSynthesizer(activateSSML: activateSSML)
     
     // Recognizer construction
     let inputSource = InputSourceFactory.create(inputSource: inputType)
-    speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: true, task: .query)
+    speechRecognizer = BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: true, task: .query)
     
     // Delegates
     speechSynthesizer.delegate = self
@@ -164,3 +179,58 @@ extension InterruptibleChat: BLSpeechSynthesizerDelegate {
   
 }
 
+// MARK: - InterruptibleChat mock
+
+public class InterruptibleChatMock: InterruptibleChatProtocol {
+  private var completion: ((Result<InterruptibleChat.Completion, Error>) -> Void)!
+  // Closure to be called upon an event appears
+  private var eventLaunch: ((InterrumpibleChatEvent) -> Void)?
+  
+  private let recognized: [String]
+  public var speaked: String = ""
+  
+  init(recognized: [String]) {
+    self.recognized = recognized
+  }
+  
+  @MainActor
+  public func start(completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
+             event: ((InterrumpibleChatEvent) -> Void)?) {
+    self.completion = completion
+    self.eventLaunch = event
+    
+    self.eventLaunch?(.startedListening)
+    for text in recognized {
+      self.eventLaunch?(.detectedSpeaking)
+      self.completion(.success(.init(text: text, isFinal: false)))
+    }
+    
+    self.completion(.success(.init(text: "", isFinal: true)))
+  }
+  
+  @MainActor
+  public func stop() {
+    self.eventLaunch?(.stoppedListening)
+  }
+  
+  @MainActor
+  public func synthesize(text: String, isFinal: Bool) {
+    self.eventLaunch?(.startedSpeaking)
+    self.speaked.append(text)
+  }
+  
+  @MainActor
+  public func synthesize(text: String, isFinal: Bool, voice: Voice, activateSSML: Bool) {
+    self.eventLaunch?(.startedSpeaking)
+    self.speaked.append(text)
+  }
+  
+  @MainActor
+  public func stopSynthesizing() {
+    self.eventLaunch?(.stoppedSpeaking)
+  }
+  
+  public static func listVoices() -> [Voice] {
+    return [Voice(language: "en_US", identifier: "voice_id", name: "The Voice", gender: .male, quality: .default)]
+  }
+}

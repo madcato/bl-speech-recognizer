@@ -79,7 +79,7 @@ class InterruptibleChatViewModel: ObservableObject {
   @MainActor
   func selectVoice(_ voice: Voice) {
     stopRecording()
-    selectedVoice = voice
+    selectedVoice = voice 
   }
   
   func showError(_ errorText: String) {
