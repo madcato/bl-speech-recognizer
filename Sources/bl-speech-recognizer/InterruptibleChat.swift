@@ -189,7 +189,7 @@ public class InterruptibleChatMock: InterruptibleChatProtocol {
   private let recognized: [String]
   public var speaked: String = ""
   
-  init(recognized: [String]) {
+  public init(recognized: [String]) {
     self.recognized = recognized
   }
   
