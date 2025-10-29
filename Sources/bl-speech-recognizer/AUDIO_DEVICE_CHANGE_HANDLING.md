@@ -1,38 +1,38 @@
 # Audio Device Change Handling in bl-speech-recognizer
 
-## Problema Resuelto
+## Problem Resolved
 
-La librería `bl-speech-recognizer` ahora maneja correctamente los cambios de dispositivos de audio en tiempo real. Anteriormente, cuando un usuario cambiaba la fuente de audio (por ejemplo, de altavoces internos a AirPods), el reconocimiento de voz y la síntesis dejaban de funcionar correctamente.
+The `bl-speech-recognizer` library now properly handles audio device changes in real-time. Previously, when a user changed the audio source (for example, from internal speakers to AirPods), speech recognition and synthesis would stop working correctly.
 
-## Solución Implementada
+## Implemented Solution
 
-### 1. Detección Automática de Cambios de Dispositivos
+### 1. Automatic Device Change Detection
 
-La clase `MicrophoneInputSource` ahora incluye:
+The `MicrophoneInputSource` class now includes:
 
-- **macOS**: Usa notificaciones de Core Audio para detectar cambios en dispositivos de entrada y salida
-- **iOS**: Usa notificaciones de `AVAudioSession` para detectar cambios de ruta y interrupciones
+- **macOS**: Uses Core Audio notifications to detect input and output device changes
+- **iOS**: Uses `AVAudioSession` notifications to detect route changes and interruptions
 
-### 2. Reinicialización Automática del Audio Engine
+### 2. Automatic Audio Engine Reinitialization
 
-Cuando se detecta un cambio de dispositivo:
-1. El `AVAudioEngine` actual se detiene de forma controlada
-2. Se espera 0.5 segundos para que el cambio de dispositivo se complete
-3. Se reinicializa el audio engine con la nueva configuración
-4. El reconocimiento continúa automáticamente
+When a device change is detected:
+1. The current `AVAudioEngine` is stopped in a controlled manner
+2. Wait 0.5 seconds for the device change to complete
+3. Reinitialize the audio engine with the new configuration
+4. Recognition continues automatically
 
-### 3. Monitoreo de Dispositivos
+### 3. Device Monitoring
 
-La nueva clase `AudioDeviceMonitor` proporciona:
-- Información sobre dispositivos de entrada y salida actuales
-- Funciones de debugging para imprimir información detallada de audio
-- Compatibilidad multiplataforma (macOS e iOS)
+The new `AudioDeviceMonitor` class provides:
+- Information about current input and output devices
+- Debugging functions to print detailed audio information
+- Cross-platform compatibility (macOS and iOS)
 
-## Uso
+## Usage
 
-### Uso Básico (Sin Cambios)
+### Basic Usage (No Changes)
 
-El uso de `InterruptibleChat` permanece igual:
+The usage of `InterruptibleChat` remains the same:
 
 ```swift
 let chat = InterruptibleChat(
@@ -42,50 +42,50 @@ let chat = InterruptibleChat(
 )
 
 chat.start(completion: { result in
-    // Manejar resultado
+    // Handle result
 }, event: { event in
-    // Manejar eventos
+    // Handle events
 })
 ```
 
-### Monitoreo de Dispositivos
+### Device Monitoring
 
 ```swift
-// Obtener información de dispositivos actuales
+// Get current device information
 let inputDevice = AudioDeviceMonitor.getCurrentInputDevice()
 let outputDevice = AudioDeviceMonitor.getCurrentOutputDevice()
 
-// Imprimir información detallada para debugging
+// Print detailed information for debugging
 AudioDeviceMonitor.printCurrentAudioDevices()
 ```
 
-### Ejemplo Completo
+### Complete Example
 
-Consulta `AudioDeviceChangeExample.swift` para un ejemplo completo con UI que demuestra:
-- Inicio y parada del reconocimiento
-- Pruebas de síntesis de voz
-- Monitoreo en tiempo real de cambios de dispositivos
-- Visualización del estado actual
+See `AudioDeviceChangeExample.swift` for a complete example with UI that demonstrates:
+- Starting and stopping recognition
+- Text-to-speech synthesis tests
+- Real-time monitoring of device changes
+- Current status visualization
 
-## Casos de Uso Soportados
+## Supported Use Cases
 
 ### macOS
-- ✅ Cambio de Mac Mini altavoces internos a AirPods
-- ✅ Cambio de AirPods Max a altavoces del monitor
-- ✅ Conexión/desconexión de dispositivos USB
-- ✅ Cambios entre dispositivos Bluetooth
+- ✅ Switch from Mac Mini internal speakers to AirPods
+- ✅ Switch from AirPods Max to monitor speakers
+- ✅ USB device connection/disconnection
+- ✅ Bluetooth device switching
 
 ### iOS
-- ✅ Conexión/desconexión de AirPods
-- ✅ Cambios entre altavoces y auriculares
-- ✅ Interrupciones por llamadas telefónicas
-- ✅ Cambios de ruta de audio del sistema
+- ✅ AirPods connection/disconnection
+- ✅ Switching between speakers and headphones
+- ✅ Phone call interruptions
+- ✅ System audio route changes
 
 ## Debugging
 
-### Logs Informativos
+### Informative Logs
 
-La implementación incluye logs detallados:
+The implementation includes detailed logs:
 
 ```
 [MicrophoneInputSource] Audio device change detected
@@ -95,51 +95,51 @@ La implementación incluye logs detallados:
 [AudioDeviceMonitor] Current output device: AirPods Pro
 ```
 
-### Verificar Estado del Audio
+### Check Audio Status
 
 ```swift
-// En tu ViewModel o controlador
+// In your ViewModel or controller
 func checkAudioStatus() {
     AudioDeviceMonitor.printCurrentAudioDevices()
 }
 ```
 
-## Consideraciones de Rendimiento
+## Performance Considerations
 
-- La reinicialización del audio engine introduce una latencia mínima (~0.5 segundos)
-- Los cambios de dispositivo son detectados inmediatamente
-- No hay impacto en el rendimiento cuando no hay cambios de dispositivos
-- La implementación usa notificaciones del sistema, no polling
+- Audio engine reinitialization introduces minimal latency (~0.5 seconds)
+- Device changes are detected immediately
+- No performance impact when no device changes occur
+- Implementation uses system notifications, not polling
 
-## Manejo de Errores
+## Error Handling
 
-Los errores relacionados con cambios de dispositivos se reportan a través del delegate:
+Errors related to device changes are reported through the delegate:
 
 ```swift
-// En tu implementación de BLSpeechRecognizerDelegate
+// In your BLSpeechRecognizerDelegate implementation
 func speechRecognizer(error: any Error) {
     if let error = error as? SpeechRecognizerError,
        case .audioDeviceChangeError(let message) = error {
-        print("Error de cambio de dispositivo: \(message)")
-        // Manejar error específico
+        print("Device change error: \(message)")
+        // Handle specific error
     }
 }
 ```
 
-## Limitaciones
+## Limitations
 
-1. **Latencia temporal**: Hay una breve interrupción (~0.5s) durante el cambio de dispositivo
-2. **macOS Simulator**: Los cambios de dispositivo no se pueden simular completamente
-3. **Dispositivos incompatibles**: Algunos dispositivos de audio muy antiguos pueden no ser detectados correctamente
+1. **Temporary latency**: There's a brief interruption (~0.5s) during device changes
+2. **macOS Simulator**: Device changes cannot be fully simulated
+3. **Incompatible devices**: Some very old audio devices may not be detected correctly
 
 ## Testing
 
-Para probar la funcionalidad:
+To test the functionality:
 
-1. Ejecuta la app en un dispositivo físico (no simulador)
-2. Inicia el reconocimiento de voz
-3. Cambia el dispositivo de audio (conecta/desconecta AirPods, etc.)
-4. Verifica que el reconocimiento continúe funcionando
-5. Revisa los logs en la consola para confirmar la detección del cambio
+1. Run the app on a physical device (not simulator)
+2. Start speech recognition
+3. Change the audio device (connect/disconnect AirPods, etc.)
+4. Verify that recognition continues working
+5. Check the logs in the console to confirm device change detection
 
-El ejemplo `AudioDeviceChangeExample` proporciona una interfaz visual para facilitar las pruebas.
+The `AudioDeviceChangeExample` example provides a visual interface to facilitate testing.

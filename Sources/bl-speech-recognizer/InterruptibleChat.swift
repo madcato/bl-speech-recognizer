@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AVFoundation
 
 public protocol InterruptibleChatProtocol {
   @MainActor
@@ -60,7 +61,20 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
   /// Time to detect silence before considering the speech as final.
   private var waitTime: TimeInterval = 1.0
   
+  // Audio device monitoring properties
+  private var deviceChangeObserver: NSObjectProtocol?
+  private var lastKnownInputDevice: String?
+  private var isMonitoringDevices = false
+  private var inputType: InputSourceType
+  private var locale: Locale
+  private var activateSSML: Bool
+  
   public init(inputType: InputSourceType, locale: Locale = .current, activateSSML: Bool) {
+    // Store initialization parameters for potential device restarts
+    self.inputType = inputType
+    self.locale = locale
+    self.activateSSML = activateSSML
+    
     // Synthesizer construction
     speechSynthesizer = BLSpeechSynthesizer(activateSSML: activateSSML)
     
@@ -71,6 +85,13 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
     // Delegates
     speechSynthesizer.delegate = self
     speechRecognizer.delegate = self
+    
+    // Setup audio device monitoring
+    setupAudioDeviceMonitoring()
+  }
+  
+  deinit {
+    stopAudioDeviceMonitoring()
   }
   
   /// Starts the speech recognition process.
@@ -84,6 +105,14 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
                     event: ((InterrumpibleChatEvent) -> Void)? = nil) {
     self.completion = completion
     self.eventLaunch = event
+    
+    // Configure audio session for better device change handling
+    configureAudioSession()
+    
+    // Update last known input device and start monitoring
+    lastKnownInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
+    isMonitoringDevices = true
+    
     // Starts the recognition process.
     speechRecognizer.start()
   }
@@ -91,6 +120,9 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
   /// Stops the speech recognition process and cleans up resources.
   @MainActor
   public func stop() {
+    // Stop monitoring devices
+    isMonitoringDevices = false
+    
     // Stop the speech recognizer.
     speechRecognizer.stop()
   }
@@ -122,6 +154,129 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
       await self.stopSynthesizing()
     }
     eventLaunch?(.detectedSpeaking)
+  }
+  
+  // MARK: - Audio Device Management
+  
+  private func setupAudioDeviceMonitoring() {
+    lastKnownInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
+    
+    #if os(macOS)
+    // Start monitoring for macOS
+    AudioDeviceMonitor.startMonitoring()
+    
+    deviceChangeObserver = NotificationCenter.default.addObserver(
+      forName: AudioDeviceMonitor.audioDeviceChangedNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] notification in
+      self?.handleMacOSAudioDeviceChange()
+    }
+    #else
+    // Use AVAudioSession for iOS
+    deviceChangeObserver = NotificationCenter.default.addObserver(
+      forName: AVAudioSession.routeChangeNotification,
+      object: AVAudioSession.sharedInstance(),
+      queue: .main
+    ) { [weak self] notification in
+      self?.handleAudioRouteChange(notification)
+    }
+    #endif
+  }
+  
+  private func stopAudioDeviceMonitoring() {
+    if let observer = deviceChangeObserver {
+      NotificationCenter.default.removeObserver(observer)
+      deviceChangeObserver = nil
+    }
+    #if os(macOS)
+    AudioDeviceMonitor.stopMonitoring()
+    #endif
+  }
+  
+  #if os(macOS)
+  private func handleMacOSAudioDeviceChange() {
+    guard isMonitoringDevices else { return }
+    
+    print("[InterruptibleChat] macOS audio device changed")
+    
+    let currentInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
+    if currentInputDevice != lastKnownInputDevice {
+      print("[InterruptibleChat] Input device changed from '\(lastKnownInputDevice ?? "nil")' to '\(currentInputDevice ?? "nil")'")
+      lastKnownInputDevice = currentInputDevice
+      
+      // Restart recognition to use the new device
+      restartRecognition()
+    }
+  }
+  #endif
+  
+  #if !os(macOS)
+  private func handleAudioRouteChange(_ notification: Notification) {
+    guard isMonitoringDevices else { return }
+    
+    guard let userInfo = notification.userInfo,
+          let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+          let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+      return
+    }
+    
+    print("[InterruptibleChat] Audio route changed: \(reason)")
+    
+    // Check if input device changed
+    let currentInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
+    if currentInputDevice != lastKnownInputDevice {
+      print("[InterruptibleChat] Input device changed from '\(lastKnownInputDevice ?? "nil")' to '\(currentInputDevice ?? "nil")'")
+      lastKnownInputDevice = currentInputDevice
+      
+      // Restart recognition to use the new device
+      restartRecognition()
+    }
+  }
+  #endif
+  
+  private func restartRecognition() {
+    Task { @MainActor in
+      // Store current completion and event handlers
+      let currentCompletion = self.completion
+      let currentEvent = self.eventLaunch
+      
+      // Stop current recognition
+      speechRecognizer.stop()
+      
+      // Small delay to ensure clean stop
+      try? await Task.sleep(nanoseconds: 200_000_000) // 200ms
+      
+      // Recreate the speech recognizer with new device
+      let inputSource = InputSourceFactory.create(inputSource: self.inputType)
+      speechRecognizer = BLSpeechRecognizer(inputSource: inputSource, locale: self.locale, shouldReportPartialResults: true, task: .query)
+      speechRecognizer.delegate = self
+      
+      // Restore handlers
+      self.completion = currentCompletion
+      self.eventLaunch = currentEvent
+      
+      // Update device info
+      lastKnownInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
+      
+      // Start recognition again
+      speechRecognizer.start()
+      
+      print("[InterruptibleChat] Recognition restarted with new input device")
+    }
+  }
+  
+  private func configureAudioSession() {
+    #if !os(macOS)
+    do {
+      let audioSession = AVAudioSession.sharedInstance()
+      try audioSession.setCategory(.playAndRecord, mode: .default, options: [.allowBluetooth, .allowBluetoothA2DP])
+      try audioSession.setActive(true)
+      print("[InterruptibleChat] Audio session configured")
+    } catch {
+      print("[InterruptibleChat] Failed to configure audio session: \(error.localizedDescription)")
+    }
+    #endif
   }
 }
 

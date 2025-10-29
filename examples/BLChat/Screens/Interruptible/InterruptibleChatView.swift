@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import MediaPlayer
 
 // MARK: - View
 struct InterruptibleChatView: View {
@@ -31,6 +30,7 @@ struct InterruptibleChatView: View {
           .symbolVariant(.fill)
           .symbolEffect(.bounce.down, options: .repeating, isActive: viewModel.speaking)
         }
+      
       // Text View
       ScrollView {
         Text(viewModel.recognizedText)
@@ -76,13 +76,17 @@ struct InterruptibleChatView: View {
           .fill(viewModel.isRecording ? Color.red : Color.blue)
           .frame(width: 80, height: 80)
           .overlay(
-            Image(systemName: "mic.fill")
-              .foregroundColor(.white)
-              .font(.system(size: 36))
+            Group {
+
+                Image(systemName: "mic.fill")
+                  .foregroundColor(.white)
+                  .font(.system(size: 36))
+            }
           )
           .scaleEffect(viewModel.isRecording ? 1.2 : 1.0)
           .animation(.easeInOut(duration: 0.2), value: viewModel.isRecording)
       }
+
       .padding()
     }
     .navigationTitle("Interruptible Chat")

@@ -19,6 +19,7 @@ enum SpeechRecognizerError: Error, LocalizedError {
   case audioInputFailure(String)
   case pauseFailed(String)
   case resumeFailed(String)
+  case audioDeviceChangeError(String)
   
   var errorDescription: String? {
     switch self {
@@ -32,6 +33,7 @@ enum SpeechRecognizerError: Error, LocalizedError {
     case .audioInputFailure(let message): return "Audio input error: \(message)"
     case .pauseFailed(let message): return "Failed to pause recognition: \(message)"
     case .resumeFailed(let message): return "Failed to resume recognition: \(message)"
+    case .audioDeviceChangeError(let message): return "Audio device change error: \(message)"
     }
   }
 }

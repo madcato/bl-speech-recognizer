@@ -22,11 +22,7 @@ class InterruptibleChatViewModel: ObservableObject {
   private var interruptibleChat: InterruptibleChat
   
   init() {
-    do {
-      self.interruptibleChat = try InterruptibleChat(inputType: .microphone, activateSSML: false)
-    } catch {
-      fatalError("Error creating InterruptibleChat: \(error)")
-    }
+    self.interruptibleChat = InterruptibleChat(inputType: .microphone, activateSSML: false)
     self.availableVoices = InterruptibleChat.listVoices().filter({ voice in
       voice.language == "es-ES" || voice.language == "en-US"
     })
@@ -102,7 +98,7 @@ class InterruptibleChatViewModel: ObservableObject {
       await self.interruptibleChat.synthesize(text: text, isFinal: true, voice: selectedVoice!)
     }
   }
-  
+
   private let textToSynthesize_en: String = """
   "Bitcoin is a form of digital currency, also known as a cryptocurrency. It was invented in 2008 by an anonymous person or group of people using the pseudonym Satoshi Nakamoto. The currency began use in 2009 when its implementation was released as open-source software.
   
