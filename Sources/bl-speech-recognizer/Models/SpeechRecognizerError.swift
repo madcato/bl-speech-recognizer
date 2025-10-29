@@ -5,24 +5,35 @@
 //  Created by Daniel Vela on 1/1/25.
 //
 
-enum SpeechRecognizerError: Error {
-  case auidoPropertiesError
-  case notDetermined
+import Foundation
+
+// Define custom errors for better clarity
+enum SpeechRecognizerError: Error, LocalizedError {
+  case speechRecognizerNotAvailable
   case userDenied
   case recognitionRestricted
-  case speechRecognizerNotAvailable
+  case notDetermined
   case recognitionTaskUnable
   case notAvailableInputs
+  case auidoPropertiesError(String)
+  case audioInputFailure(String)
+  case pauseFailed(String)
+  case resumeFailed(String)
+  case audioDeviceChangeError(String)
   
-  var message: String {
+  var errorDescription: String? {
     switch self {
-    case .auidoPropertiesError: return "audioSession properties weren't set because of an error."
-    case .notDetermined: return "The app’s authorization status has not yet been determined."
-    case .userDenied: return "The user denied your app’s request to perform speech recognition."
-    case .recognitionRestricted: return "The device prevents your app from performing speech recognition."
-    case .speechRecognizerNotAvailable : return "Speech Recognition not available"
-    case .recognitionTaskUnable : return "Unable to create an SFSpeechAudioBufferRecognitionRequest object"
-    case .notAvailableInputs: return "Not enough available inputs for microphone!"
+    case .speechRecognizerNotAvailable: return "Speech recognizer is not available for this locale."
+    case .userDenied: return "User denied speech recognition permission."
+    case .recognitionRestricted: return "Speech recognition is restricted on this device."
+    case .notDetermined: return "Speech recognition authorization is not determined."
+    case .recognitionTaskUnable: return "Unable to create recognition task."
+    case .notAvailableInputs: return "No available audio inputs."
+    case .auidoPropertiesError(let message): return "Audio properties are not valid: \(message)"
+    case .audioInputFailure(let message): return "Audio input error: \(message)"
+    case .pauseFailed(let message): return "Failed to pause recognition: \(message)"
+    case .resumeFailed(let message): return "Failed to resume recognition: \(message)"
+    case .audioDeviceChangeError(let message): return "Audio device change error: \(message)"
     }
   }
 }

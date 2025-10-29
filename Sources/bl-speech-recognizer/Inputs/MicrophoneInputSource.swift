@@ -6,10 +6,13 @@
 //
 
 import Speech
+import AVFoundation
+#if os(macOS)
+import CoreAudio
+#endif
 
 /// A class that handles the microphone input source for speech recognition.
 class MicrophoneInputSource: InputSource {
-  /// Audio Engine to recieve data from the michrophone
   /// Audio Engine to receive data from the microphone
   private var audioEngine: AVAudioEngine = AVAudioEngine()
   
@@ -17,6 +20,9 @@ class MicrophoneInputSource: InputSource {
   
   private var speakDetectedCallBack: (() -> Void)?
   private var silenceDetectedCallBack: (() -> Void)?
+  
+  // Audio device change handling
+  private var isInitialized = false
   
   private let speakThreshold: Float32 = -15.0
   private let silenceThreshold: Float32 = -50.0
@@ -27,9 +33,23 @@ class MicrophoneInputSource: InputSource {
     self.speakDetectedCallBack = speakDetected
     self.silenceDetectedCallBack = silenceDetected
     self.timeToLaunchSilenceEvent = timeToLaunchSilenceEvent
+    
+    // Set up audio device change notifications
+    setupAudioDeviceChangeNotifications()
+  }
+  
+  deinit {
+    removeAudioDeviceChangeNotifications()
   }
   /// Initializes the microphone input by configuring the audio session.
   func initialize() throws -> SFSpeechRecognitionRequest? {
+    try initializeAudioEngine()
+    isInitialized = true
+    return recognitionRequest
+  }
+  
+  /// Internal method to initialize or reinitialize the audio engine
+  private func initializeAudioEngine() throws {
     configureAudioSession()
     
     audioEngine = AVAudioEngine()
@@ -52,12 +72,21 @@ class MicrophoneInputSource: InputSource {
     let inputNode = audioEngine.inputNode
     inputNode.isVoiceProcessingAGCEnabled = true
     
+    let ibuses = inputNode.numberOfInputs
+    let obuses = inputNode.numberOfOutputs
+    
+    print("Number of Inputs: \(ibuses)")
+    print("Number of Outputs: \(obuses)")
+    
     /// Check if the input node can provide audio data
     if(inputNode.inputFormat(forBus: 0).channelCount == 0) {
       throw SpeechRecognizerError.notAvailableInputs
     }
     /// Set up the format for recording and add a tap to the audio engine's input node
     let recordingFormat = inputNode.outputFormat(forBus: 0)  // 11
+    guard recordingFormat.sampleRate > 0 else {
+        throw SpeechRecognizerError.audioInputFailure("Invalid audio format: Sample rate is 0 Hz. Don't use iOS Simulator.")
+    }
     inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [self] (buffer, _) in
       self.recognitionRequest?.append(buffer)
       return  // Removing this line, silence and VAD can be detected, but device Energy Impact raises
@@ -108,11 +137,47 @@ class MicrophoneInputSource: InputSource {
     audioEngine.prepare()  // 12
     try audioEngine.start()
     
-    return recognitionRequest
+    print("[MicrophoneInputSource] Audio engine started successfully")
   }
   
+  /// Handles audio device changes by reinitializing the audio engine
+  private func handleAudioDeviceChange() {
+    print("[MicrophoneInputSource] Audio device change detected")
+    
+    guard isInitialized else { return }
+    
+    // Restart audio engine on main queue to avoid race conditions
+    DispatchQueue.main.async { [weak self] in
+      self?.restartAudioEngine()
+    }
+  }
+  
+  /// Restarts the audio engine when device changes occur
+  private func restartAudioEngine() {
+    print("[MicrophoneInputSource] Restarting audio engine due to device change")
+    
+    // Stop current engine
+    stopAudioEngine()
+    
+    // Small delay to allow device switching to complete
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+      do {
+        try self?.initializeAudioEngine()
+        print("[MicrophoneInputSource] Audio engine restarted successfully")
+      } catch {
+        print("[MicrophoneInputSource] Failed to restart audio engine: \(error)")
+      }
+    }
+  }
+
   /// Stops the audio engine and removes any installed taps.
   func stop() {
+    isInitialized = false
+    stopAudioEngine()
+  }
+  
+  /// Stops the audio engine without cleaning up notifications
+  func stopAudioEngine() {
     recognitionRequest?.endAudio()
     audioEngine.stop()
     if let inputNode = audioEngine.inputNode as? AVAudioInputNode {
@@ -131,7 +196,7 @@ class MicrophoneInputSource: InputSource {
     do {
       try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                    mode: .voiceChat,
-                                   options: [.allowBluetooth, .defaultToSpeaker, .allowAirPlay, .allowBluetoothA2DP])
+                                   options: [.defaultToSpeaker])  // [.allowBluetooth, .defaultToSpeaker, .allowAirPlay, .allowBluetoothA2DP])
 #if os(watchOS)
     audioSession.activate(completionHandler: { done, error in
       if let error = error {
@@ -150,8 +215,147 @@ class MicrophoneInputSource: InputSource {
 #endif
     } catch {
       // Logs an error if audio session properties can't be set
-      print(SpeechRecognizerError.auidoPropertiesError.message)
+      fatalError(SpeechRecognizerError.auidoPropertiesError(error.localizedDescription).errorDescription ?? "Unknown error.")
     }
  #endif
   }
+  
+  // MARK: - Audio Device Change Notifications
+  
+  /// Sets up notifications for audio device changes
+  func setupAudioDeviceChangeNotifications() {
+    #if os(macOS)
+    // macOS: Use Core Audio notifications for device changes
+    var address = AudioObjectPropertyAddress(
+      mSelector: kAudioHardwarePropertyDefaultInputDevice,
+      mScope: kAudioObjectPropertyScopeGlobal,
+      mElement: kAudioObjectPropertyElementMain
+    )
+    
+    let callback: AudioObjectPropertyListenerProc = { _, _, _, userData in
+      if let userData = userData {
+        let mutableSelf = Unmanaged<MicrophoneInputSource>.fromOpaque(userData).takeUnretainedValue()
+        mutableSelf.handleAudioDeviceChange()
+      }
+      return noErr
+    }
+    
+    AudioObjectAddPropertyListener(
+      AudioObjectID(kAudioObjectSystemObject),
+      &address,
+      callback,
+      Unmanaged.passUnretained(self).toOpaque()
+    )
+    
+    // Also listen for output device changes as they can affect routing
+    address.mSelector = kAudioHardwarePropertyDefaultOutputDevice
+    AudioObjectAddPropertyListener(
+      AudioObjectID(kAudioObjectSystemObject),
+      &address,
+      callback,
+      Unmanaged.passUnretained(self).toOpaque()
+    )
+    
+    print("[MicrophoneInputSource] Audio device change notifications set up for macOS")
+    
+    #else
+    // iOS: Use AVAudioSession notifications
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(handleAudioSessionRouteChange(_:)),
+      name: AVAudioSession.routeChangeNotification,
+      object: nil
+    )
+    
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(handleAudioSessionInterruption(_:)),
+      name: AVAudioSession.interruptionNotification,
+      object: nil
+    )
+    
+    print("[MicrophoneInputSource] Audio session notifications set up for iOS")
+    #endif
+  }
+  
+  /// Removes audio device change notifications
+  func removeAudioDeviceChangeNotifications() {
+    #if os(macOS)
+    // macOS: Remove Core Audio listeners
+    var address = AudioObjectPropertyAddress(
+      mSelector: kAudioHardwarePropertyDefaultInputDevice,
+      mScope: kAudioObjectPropertyScopeGlobal,
+      mElement: kAudioObjectPropertyElementMain
+    )
+    
+    let callback: AudioObjectPropertyListenerProc = { _, _, _, _ in
+      return noErr
+    }
+    
+    AudioObjectRemovePropertyListener(
+      AudioObjectID(kAudioObjectSystemObject),
+      &address,
+      callback,
+      Unmanaged.passUnretained(self).toOpaque()
+    )
+    
+    address.mSelector = kAudioHardwarePropertyDefaultOutputDevice
+    AudioObjectRemovePropertyListener(
+      AudioObjectID(kAudioObjectSystemObject),
+      &address,
+      callback,
+      Unmanaged.passUnretained(self).toOpaque()
+    )
+    
+    print("[MicrophoneInputSource] Audio device change notifications removed for macOS")
+    
+    #else
+    // iOS: Remove notification observers
+    NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+    NotificationCenter.default.removeObserver(self, name: AVAudioSession.interruptionNotification, object: nil)
+    
+    print("[MicrophoneInputSource] Audio session notifications removed for iOS")
+    #endif
+  }
+  
+  #if !os(macOS)
+  /// Handles AVAudioSession route changes (iOS)
+  @objc func handleAudioSessionRouteChange(_ notification: Notification) {
+    guard let userInfo = notification.userInfo,
+          let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+          let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+      return
+    }
+    
+    print("[MicrophoneInputSource] Audio route change reason: \(reason)")
+    
+    switch reason {
+    case .newDeviceAvailable, .oldDeviceUnavailable, .categoryChange:
+      handleAudioDeviceChange()
+    default:
+      break
+    }
+  }
+  
+  /// Handles AVAudioSession interruptions (iOS)
+  @objc func handleAudioSessionInterruption(_ notification: Notification) {
+    guard let userInfo = notification.userInfo,
+          let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+          let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+      return
+    }
+    
+    print("[MicrophoneInputSource] Audio interruption type: \(type)")
+    
+    switch type {
+    case .began:
+      print("[MicrophoneInputSource] Audio interruption began")
+    case .ended:
+      print("[MicrophoneInputSource] Audio interruption ended")
+      handleAudioDeviceChange()
+    @unknown default:
+      break
+    }
+  }
+  #endif
 }

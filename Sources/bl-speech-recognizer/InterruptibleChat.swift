@@ -6,6 +6,22 @@
 //
 
 import Foundation
+import AVFoundation
+
+public protocol InterruptibleChatProtocol {
+  @MainActor
+  func start(completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
+                    event: ((InterrumpibleChatEvent) -> Void)?)
+  @MainActor
+  func stop()
+  @MainActor
+  func synthesize(text: String, isFinal: Bool)
+  @MainActor
+  func synthesize(text: String, isFinal: Bool, voice: Voice, activateSSML: Bool)
+  @MainActor
+  func stopSynthesizing()
+  static func listVoices() -> [Voice]
+}
 
 public enum InterrumpibleChatEvent {
   case startedListening
@@ -16,16 +32,24 @@ public enum InterrumpibleChatEvent {
   case synthesizingRange(NSRange)
 }
 
+//protocol AudioCoordinatorProtocol: SpeechRecognizerProtocol, SpeechSynthesizerProtocol {
+//}
+
 /// The `InterruptibleChat` class is responsible for handling continuous speech recognition.
 /// Also can synthesize text to speech. If user speaks while synthesizing, it becomes stopped.
 /// The text to be synthesize can be added as a stream. This class store the text to be synthesized.
 /// It can be used in long interactions with the user, like a chat.
 /// It manages the lifecycle of speech recognition using a `BLSpeechRecognizer` instance and informs the client of results and events.
-public class InterruptibleChat: @unchecked Sendable {
+public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
+  public struct Completion {
+    public let text: String
+    public let isFinal: Bool
+  }
+  
   // The speech recognizer responsible for interpreting audio input.
-  private var speechRecognizer: BLSpeechRecognizer?
+  private var speechRecognizer: BLSpeechRecognizer
   // The speech synthesizer responsible for interpreting audio output.
-  private var speechSynthesizer: BLSpeechSynthesizer!
+  private var speechSynthesizer: BLSpeechSynthesizer
   
   // Closure to be called upon completion with the recognition result or an error.
   private var completion: ((Result<InterruptibleChat.Completion, Error>) -> Void)!
@@ -37,11 +61,37 @@ public class InterruptibleChat: @unchecked Sendable {
   /// Time to detect silence before considering the speech as final.
   private var waitTime: TimeInterval = 1.0
   
-  public init() {}
+  // Audio device monitoring properties
+  private var deviceChangeObserver: NSObjectProtocol?
+  private var lastKnownInputDevice: String?
+  private var isMonitoringDevices = false
+  private var inputType: InputSourceType
+  private var locale: Locale
+  private var activateSSML: Bool
   
-  public struct Completion {
-    public let text: String
-    public let isFinal: Bool
+  public init(inputType: InputSourceType, locale: Locale = .current, activateSSML: Bool) {
+    // Store initialization parameters for potential device restarts
+    self.inputType = inputType
+    self.locale = locale
+    self.activateSSML = activateSSML
+    
+    // Synthesizer construction
+    speechSynthesizer = BLSpeechSynthesizer(activateSSML: activateSSML)
+    
+    // Recognizer construction
+    let inputSource = InputSourceFactory.create(inputSource: inputType)
+    speechRecognizer = BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: true, task: .query)
+    
+    // Delegates
+    speechSynthesizer.delegate = self
+    speechRecognizer.delegate = self
+    
+    // Setup audio device monitoring
+    setupAudioDeviceMonitoring()
+  }
+  
+  deinit {
+    stopAudioDeviceMonitoring()
   }
   
   /// Starts the speech recognition process.
@@ -51,62 +101,52 @@ public class InterruptibleChat: @unchecked Sendable {
   ///   - locale: The locale specifying language and regional settings, defaults to current locale.
   ///   - completion: A closure to be executed with the result of the recognition or an error.
   @MainActor
-  public func start(inputType: InputSourceType, locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void), event: ((InterrumpibleChatEvent) -> Void)? = nil) {
+  public func start(completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
+                    event: ((InterrumpibleChatEvent) -> Void)? = nil) {
     self.completion = completion
     self.eventLaunch = event
-    let inputSource = InputSourceFactory.create(inputSource: inputType)
-    do {
-      // Initializes the speech recognizer with the given input source and locale.
-      speechRecognizer = try BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: true, task: .query)
-      speechRecognizer?.delegate = self
-      // Starts the recognition process.
-      speechRecognizer?.start()
-    } catch {
-      // Calls completion with an error if initialization fails.
-      completion(.failure(error))
-    }
+    
+    // Configure audio session for better device change handling
+    configureAudioSession()
+    
+    // Update last known input device and start monitoring
+    lastKnownInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
+    isMonitoringDevices = true
+    
+    // Starts the recognition process.
+    speechRecognizer.start()
   }
   
   /// Stops the speech recognition process and cleans up resources.
   @MainActor
   public func stop() {
+    // Stop monitoring devices
+    isMonitoringDevices = false
+    
     // Stop the speech recognizer.
-    speechRecognizer?.stop()
+    speechRecognizer.stop()
   }
   
   /// Starts or continues the speech synthesizing process and cleans up resources.
   @MainActor
-  public func synthesize(text: String, isFinal: Bool, locale: Locale) {
-    if speechSynthesizer == nil {
-      speechSynthesizer = BLSpeechSynthesizer(language: locale.identifier)
-      speechSynthesizer.delegate = self
-    }
+  public func synthesize(text: String, isFinal: Bool) {
     speechSynthesizer.speak(text, isFinal: isFinal)
   }
   
   @MainActor
-  public func synthesize(text: String, isFinal: Bool, voice: Voice) {
-    if speechSynthesizer == nil {
-      speechSynthesizer = BLSpeechSynthesizer(voice: voice)
-      speechSynthesizer.delegate = self
-    }
-    speechSynthesizer.speak(text, isFinal: isFinal)
+  public func synthesize(text: String, isFinal: Bool, voice: Voice, activateSSML: Bool = false) {
+    speechSynthesizer.speak(text, isFinal: isFinal, voice: voice)
   }
   
   /// Stops the speech synthesizing process and cleans up resources.
   @MainActor
   public func stopSynthesizing() {
-    speechSynthesizer?.stop()
+    speechSynthesizer.stop()
   }
   
   /// List all available voices
-  public func listVoices() -> [Voice] {
+  public static func listVoices() -> [Voice] {
     return BLSpeechSynthesizer.availableVoices()
-  }
-  
-  // Reset synthesizer object. This allows to change voice
-  public func resetSynthesizer() {
-    speechSynthesizer = nil
   }
   
   private func userIsSpeaking() {
@@ -114,6 +154,129 @@ public class InterruptibleChat: @unchecked Sendable {
       await self.stopSynthesizing()
     }
     eventLaunch?(.detectedSpeaking)
+  }
+  
+  // MARK: - Audio Device Management
+  
+  private func setupAudioDeviceMonitoring() {
+    lastKnownInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
+    
+    #if os(macOS)
+    // Start monitoring for macOS
+    AudioDeviceMonitor.startMonitoring()
+    
+    deviceChangeObserver = NotificationCenter.default.addObserver(
+      forName: AudioDeviceMonitor.audioDeviceChangedNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] notification in
+      self?.handleMacOSAudioDeviceChange()
+    }
+    #else
+    // Use AVAudioSession for iOS
+    deviceChangeObserver = NotificationCenter.default.addObserver(
+      forName: AVAudioSession.routeChangeNotification,
+      object: AVAudioSession.sharedInstance(),
+      queue: .main
+    ) { [weak self] notification in
+      self?.handleAudioRouteChange(notification)
+    }
+    #endif
+  }
+  
+  private func stopAudioDeviceMonitoring() {
+    if let observer = deviceChangeObserver {
+      NotificationCenter.default.removeObserver(observer)
+      deviceChangeObserver = nil
+    }
+    #if os(macOS)
+    AudioDeviceMonitor.stopMonitoring()
+    #endif
+  }
+  
+  #if os(macOS)
+  private func handleMacOSAudioDeviceChange() {
+    guard isMonitoringDevices else { return }
+    
+    print("[InterruptibleChat] macOS audio device changed")
+    
+    let currentInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
+    if currentInputDevice != lastKnownInputDevice {
+      print("[InterruptibleChat] Input device changed from '\(lastKnownInputDevice ?? "nil")' to '\(currentInputDevice ?? "nil")'")
+      lastKnownInputDevice = currentInputDevice
+      
+      // Restart recognition to use the new device
+      restartRecognition()
+    }
+  }
+  #endif
+  
+  #if !os(macOS)
+  private func handleAudioRouteChange(_ notification: Notification) {
+    guard isMonitoringDevices else { return }
+    
+    guard let userInfo = notification.userInfo,
+          let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+          let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+      return
+    }
+    
+    print("[InterruptibleChat] Audio route changed: \(reason)")
+    
+    // Check if input device changed
+    let currentInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
+    if currentInputDevice != lastKnownInputDevice {
+      print("[InterruptibleChat] Input device changed from '\(lastKnownInputDevice ?? "nil")' to '\(currentInputDevice ?? "nil")'")
+      lastKnownInputDevice = currentInputDevice
+      
+      // Restart recognition to use the new device
+      restartRecognition()
+    }
+  }
+  #endif
+  
+  private func restartRecognition() {
+    Task { @MainActor in
+      // Store current completion and event handlers
+      let currentCompletion = self.completion
+      let currentEvent = self.eventLaunch
+      
+      // Stop current recognition
+      speechRecognizer.stop()
+      
+      // Small delay to ensure clean stop
+      try? await Task.sleep(nanoseconds: 200_000_000) // 200ms
+      
+      // Recreate the speech recognizer with new device
+      let inputSource = InputSourceFactory.create(inputSource: self.inputType)
+      speechRecognizer = BLSpeechRecognizer(inputSource: inputSource, locale: self.locale, shouldReportPartialResults: true, task: .query)
+      speechRecognizer.delegate = self
+      
+      // Restore handlers
+      self.completion = currentCompletion
+      self.eventLaunch = currentEvent
+      
+      // Update device info
+      lastKnownInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
+      
+      // Start recognition again
+      speechRecognizer.start()
+      
+      print("[InterruptibleChat] Recognition restarted with new input device")
+    }
+  }
+  
+  private func configureAudioSession() {
+    #if !os(macOS)
+    do {
+      let audioSession = AVAudioSession.sharedInstance()
+      try audioSession.setCategory(.playAndRecord, mode: .default, options: [.allowBluetooth, .allowBluetoothA2DP])
+      try audioSession.setActive(true)
+      print("[InterruptibleChat] Audio session configured")
+    } catch {
+      print("[InterruptibleChat] Failed to configure audio session: \(error.localizedDescription)")
+    }
+    #endif
   }
 }
 
@@ -171,3 +334,58 @@ extension InterruptibleChat: BLSpeechSynthesizerDelegate {
   
 }
 
+// MARK: - InterruptibleChat mock
+
+public class InterruptibleChatMock: InterruptibleChatProtocol {
+  private var completion: ((Result<InterruptibleChat.Completion, Error>) -> Void)!
+  // Closure to be called upon an event appears
+  private var eventLaunch: ((InterrumpibleChatEvent) -> Void)?
+  
+  private let recognized: [String]
+  public var speaked: String = ""
+  
+  public init(recognized: [String]) {
+    self.recognized = recognized
+  }
+  
+  @MainActor
+  public func start(completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
+             event: ((InterrumpibleChatEvent) -> Void)?) {
+    self.completion = completion
+    self.eventLaunch = event
+    
+    self.eventLaunch?(.startedListening)
+    for text in recognized {
+      self.eventLaunch?(.detectedSpeaking)
+      self.completion(.success(.init(text: text, isFinal: false)))
+    }
+    
+    self.completion(.success(.init(text: "", isFinal: true)))
+  }
+  
+  @MainActor
+  public func stop() {
+    self.eventLaunch?(.stoppedListening)
+  }
+  
+  @MainActor
+  public func synthesize(text: String, isFinal: Bool) {
+    self.eventLaunch?(.startedSpeaking)
+    self.speaked.append(text)
+  }
+  
+  @MainActor
+  public func synthesize(text: String, isFinal: Bool, voice: Voice, activateSSML: Bool) {
+    self.eventLaunch?(.startedSpeaking)
+    self.speaked.append(text)
+  }
+  
+  @MainActor
+  public func stopSynthesizing() {
+    self.eventLaunch?(.stoppedSpeaking)
+  }
+  
+  public static func listVoices() -> [Voice] {
+    return [Voice(language: "en_US", identifier: "voice_id", name: "The Voice", gender: .male, quality: .default)]
+  }
+}

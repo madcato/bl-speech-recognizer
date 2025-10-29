@@ -19,10 +19,11 @@ class InterruptibleChatViewModel: ObservableObject {
   @Published var listening: Bool = false
   @Published var speaking: Bool = false
 
-  private var interruptibleChat = InterruptibleChat()
+  private var interruptibleChat: InterruptibleChat
   
   init() {
-    self.availableVoices = InterruptibleChat().listVoices().filter({ voice in
+    self.interruptibleChat = InterruptibleChat(inputType: .microphone, activateSSML: false)
+    self.availableVoices = InterruptibleChat.listVoices().filter({ voice in
       voice.language == "es-ES" || voice.language == "en-US"
     })
     self.selectedVoice = availableVoices.first
@@ -34,9 +35,7 @@ class InterruptibleChatViewModel: ObservableObject {
     
     synthesize()
     
-    let locale =  Locale(identifier: selectedVoice?.language ?? "en-US")
-    
-    interruptibleChat.start(inputType: .microphone, locale: locale, completion: { result in
+    interruptibleChat.start(completion: { result in
       switch result {
       case .success(let completion):
         self.recognizedText = completion.text
@@ -76,13 +75,14 @@ class InterruptibleChatViewModel: ObservableObject {
   @MainActor
   func selectVoice(_ voice: Voice) {
     stopRecording()
-    selectedVoice = voice
-    interruptibleChat.resetSynthesizer()
+    selectedVoice = voice 
   }
   
   func showError(_ errorText: String) {
-    self.errorText = errorText
-    showError = true
+    DispatchQueue.main.async {
+      self.errorText = errorText
+      self.showError = true
+    }
   }
 
   private func synthesize() {
@@ -98,7 +98,7 @@ class InterruptibleChatViewModel: ObservableObject {
       await self.interruptibleChat.synthesize(text: text, isFinal: true, voice: selectedVoice!)
     }
   }
-  
+
   private let textToSynthesize_en: String = """
   "Bitcoin is a form of digital currency, also known as a cryptocurrency. It was invented in 2008 by an anonymous person or group of people using the pseudonym Satoshi Nakamoto. The currency began use in 2009 when its implementation was released as open-source software.
   
