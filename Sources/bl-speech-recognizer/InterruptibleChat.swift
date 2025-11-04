@@ -259,8 +259,11 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
       // Update device info
       lastKnownInputDevice = AudioDeviceMonitor.getCurrentInputDevice()
       
-      // Start recognition again
-      speechRecognizer.start()
+      // Restart only if input device exists
+      if lastKnownInputDevice != nil {
+        // Start recognition again
+        speechRecognizer.start()
+      }
       
       print("[InterruptibleChat] Recognition restarted with new input device")
     }
