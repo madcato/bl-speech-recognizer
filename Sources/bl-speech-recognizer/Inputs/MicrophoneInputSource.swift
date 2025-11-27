@@ -7,6 +7,7 @@
 
 import Speech
 import AVFoundation
+import AudioToolbox 
 #if os(macOS)
 import CoreAudio
 #endif
@@ -59,15 +60,17 @@ class MicrophoneInputSource: InputSource {
     if #available(iOS 16.0, *) {
 #if !os(macOS)
       try audioEngine.inputNode.setVoiceProcessingEnabled(true)
-      try audioEngine.outputNode.setVoiceProcessingEnabled(true)
+//      try audioEngine.outputNode.setVoiceProcessingEnabled(true)
 #endif
       
-      if #available(iOS 17.0, macOS 14, *) {
-        audioEngine.inputNode.voiceProcessingOtherAudioDuckingConfiguration = .init(enableAdvancedDucking: true, duckingLevel: AVAudioVoiceProcessingOtherAudioDuckingConfiguration.Level.max)
-      }
+//      if #available(iOS 17.0, macOS 14, *) {
+//        audioEngine.inputNode.voiceProcessingOtherAudioDuckingConfiguration = .init(enableAdvancedDucking: true, duckingLevel: AVAudioVoiceProcessingOtherAudioDuckingConfiguration.Level.max)
+//      }
     }
     // End Echo handling (AEC)
     
+    // Alternative (AEC) - removed low-level workaround as it's not compatible
+    // End alternative (AEC)
     self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     let inputNode = audioEngine.inputNode
     inputNode.isVoiceProcessingAGCEnabled = true
@@ -87,7 +90,7 @@ class MicrophoneInputSource: InputSource {
     guard recordingFormat.sampleRate > 0 else {
         throw SpeechRecognizerError.audioInputFailure("Invalid audio format: Sample rate is 0 Hz. Don't use iOS Simulator.")
     }
-    inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [self] (buffer, _) in
+    inputNode.installTap(onBus: 0, bufferSize: 16384, format: recordingFormat) { [self] (buffer, _) in
       self.recognitionRequest?.append(buffer)
       return  // Removing this line, silence and VAD can be detected, but device Energy Impact raises
       // Analyze the audio buffer for silence
@@ -359,3 +362,4 @@ class MicrophoneInputSource: InputSource {
   }
   #endif
 }
+

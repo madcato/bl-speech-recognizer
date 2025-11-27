@@ -68,21 +68,28 @@ protocol SpeechSynthesizerProtocol {
 }
 
 class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol, @unchecked Sendable {
-  private var synthesizer: AVSpeechSynthesizer? = nil
+  private lazy var synthesizer: AVSpeechSynthesizer = {
+      let s = AVSpeechSynthesizer()
+  #if !os(macOS)
+      s.usesApplicationAudioSession = false
+  #endif
+      return s
+  }()
   weak var delegate: BLSpeechSynthesizerDelegate?
   private var buffer: BLStringBuffer!
   private var isFinished = false
-  private var voice: AVSpeechSynthesisVoice!
+//  private var voice: AVSpeechSynthesisVoice!
+  private var internalVoice: Voice?
   private var rate: Float?
   private var pitchMultiplier: Float?
   private var activateSSML: Bool = false
   
   var isSpeaking: Bool {
-    return synthesizer?.isSpeaking ?? false
+    return synthesizer.isSpeaking ?? false
   }
   
   init(language: String, activateSSML: Bool = false) {
-    self.voice = AVSpeechSynthesisVoice(language: language)
+//    self.voice = AVSpeechSynthesisVoice(language: language)
     self.buffer = Self.activateSSML(activateSSML)
     self.activateSSML = activateSSML
   }
@@ -100,7 +107,7 @@ class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol, @unchecked Senda
   }
   
   func pause() {
-    synthesizer?.stopSpeaking(at: AVSpeechBoundary.word)
+    synthesizer.stopSpeaking(at: AVSpeechBoundary.word)
   }
   
   func resume() {
@@ -108,7 +115,7 @@ class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol, @unchecked Senda
   }
   
   func stop() {
-    synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
+    synthesizer.stopSpeaking(at: AVSpeechBoundary.immediate)
     buffer.reset()
   }
   
@@ -123,45 +130,63 @@ class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol, @unchecked Senda
   }
   
   private func internalSpeak() {
-    self.synthesizer = self.synthesizer ?? initializeSynthesizer()
     buffer.flush(all: isFinished) { text in
-//      print("[voice][SSML] \(text)")
-//      let ssmlText = "<?xml version=\"1.0\"?>\(text)"
+      //      print("[voice][SSML] \(text)")
+      //      let ssmlText = "<?xml version=\"1.0\"?>\(text)"
       let utterance = if #available(iOS 16.0, macOS 13.0, *), activateSSML == true {
         AVSpeechUtterance(ssmlRepresentation: text.trimmingCharacters(in: .whitespacesAndNewlines)) ?? AVSpeechUtterance(string: text)
       } else {
         AVSpeechUtterance(string: text)
       }
       
-      utterance.voice = self.voice
+//      utterance.voice = self.voice
       if let rate = rate {
         utterance.rate = rate
       }
       if let pitchMultiplier = pitchMultiplier {
         utterance.pitchMultiplier = pitchMultiplier
       }
-      synthesizer?.delegate = self
-      DispatchQueue.global(qos: .background).async {
-        self.synthesizer?.speak(utterance)
+      
+      DispatchQueue.main.async {
+        if let internalVoice = self.internalVoice {
+          let voiceIdentifier = internalVoice.identifier
+          
+          // Aquí se carga la voz fuera del MainActor → sin unsafeForcedSync
+          if let avVoice = AVSpeechSynthesisVoice(identifier: voiceIdentifier) {
+            self.rate = internalVoice.rate
+            self.pitchMultiplier = internalVoice.pitchMultiplier
+            utterance.voice = avVoice         // ← ahora ya es seguro
+            
+          }
+        }
+        
+        self.synthesizer.delegate = self
+        self.synthesizer.speak(utterance)
       }
     }
   }
   
   private func initializeSynthesizer() -> AVSpeechSynthesizer {
     let synth = AVSpeechSynthesizer()
-    #if !os(macOS)
+#if !os(macOS)
     synth.usesApplicationAudioSession = false
-    #endif
+#endif
     return synth
   }
   
   private func setVoice(_ voice: Voice?) {
-    if let voice = voice {
-      let voiceIdentifier = voice.identifier
-      self.rate = voice.rate
-      self.pitchMultiplier = voice.pitchMultiplier
-      self.voice = AVSpeechSynthesisVoice(identifier: voiceIdentifier)
-    }
+    self.internalVoice = voice
+//    if let voice = voice {
+//      let voiceIdentifier = voice.identifier
+//      Task { @MainActor in
+//        // Aquí se carga la voz fuera del MainActor → sin unsafeForcedSync
+//        if let avVoice = AVSpeechSynthesisVoice(identifier: voiceIdentifier) {
+//          self.rate = voice.rate
+//          self.pitchMultiplier = voice.pitchMultiplier
+//          self.voice = avVoice         // ← ahora ya es seguro
+//        }
+//      }
+//    }
   }
   
   private static func activateSSML(_ activate: Bool) -> BLStringBuffer {
@@ -189,7 +214,7 @@ extension BLSpeechSynthesizer: AVSpeechSynthesizerDelegate {
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
     delegate?.synthesizerFinished()
   }
-
+  
   @available(iOS 17.0, macOS 14.0, *)
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeak marker: AVSpeechSynthesisMarker, utterance: AVSpeechUtterance) {
     delegate?.synthesizing(range: marker.textRange)
