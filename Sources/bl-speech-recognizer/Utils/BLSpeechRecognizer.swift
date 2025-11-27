@@ -189,24 +189,27 @@ final class BLSpeechRecognizer: NSObject, BLSpeechRecognizerInput {
                 let transcription: SFTranscription = result.bestTranscription
                 let accumulated_confidence = transcription.segments.reduce(0.0) { $0 + $1.confidence }
         //        print("Transcription: org.veladan.voice: \(transcription.formattedString), isFinal: \(result.isFinal), num_segment: \(transcription.segments.count), confidence: \(accumulated_confidence)")
-        //        if #available(iOS 14.5, macOS 11.3, *) {
-        //          let metadata: SFSpeechRecognitionMetadata? = result.speechRecognitionMetadata
-        //          //            print("Metadata: \(String(describing: metadata))")
-        //          //            print("Voice analytics: \(String(describing: metadata?.voiceAnalytics))")
-        //        } else {
-        //          // Fallback on earlier versions
-        //        }
-        //
-        //        self.delegate?.recognized(text: transcription.formattedString, isFinal: accumulated_confidence > 0)
         
-        if accumulated_confidence == 0 {
-          let currentTranscription = result.bestTranscription.formattedString
-          if currentTranscription != self.lastTranscription {
-            self.resetSilenceTimer()  // Reinicia si hay nuevo habla
-            self.lastTranscription = currentTranscription
-          }
-          self.delegate?.recognized(text: self.lastTranscription, isFinal: false)
-        }
+        /// Apple VAD method
+                if #available(iOS 14.5, macOS 11.3, *) {
+                  let metadata: SFSpeechRecognitionMetadata? = result.speechRecognitionMetadata
+                  //            print("Metadata: \(String(describing: metadata))")
+                  //            print("Voice analytics: \(String(describing: metadata?.voiceAnalytics))")
+                } else {
+                  // Fallback on earlier versions
+                }
+        
+                self.delegate?.recognized(text: transcription.formattedString, isFinal: accumulated_confidence > 0)
+        
+        /// VAD
+//        if accumulated_confidence == 0 {
+//          let currentTranscription = result.bestTranscription.formattedString
+//          if currentTranscription != self.lastTranscription {
+//            self.resetSilenceTimer()  // Reinicia si hay nuevo habla
+//            self.lastTranscription = currentTranscription
+//          }
+//          self.delegate?.recognized(text: self.lastTranscription, isFinal: false)
+//        }
       }
     }
     )
