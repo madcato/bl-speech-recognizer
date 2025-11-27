@@ -67,7 +67,7 @@ protocol SpeechSynthesizerProtocol {
   func stop()
 }
 
-class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol, @unchecked Sendable {
+class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol {
   private lazy var synthesizer: AVSpeechSynthesizer = {
       let s = AVSpeechSynthesizer()
   #if !os(macOS)
