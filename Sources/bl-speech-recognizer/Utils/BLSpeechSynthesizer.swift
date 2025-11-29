@@ -133,6 +133,7 @@ class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol {
     buffer.flush(all: isFinished) { text in
       //      print("[voice][SSML] \(text)")
       //      let ssmlText = "<?xml version=\"1.0\"?>\(text)"
+      guard text.isEmpty == false else { return }
       let utterance = if #available(iOS 16.0, macOS 13.0, *), activateSSML == true {
         AVSpeechUtterance(ssmlRepresentation: text.trimmingCharacters(in: .whitespacesAndNewlines)) ?? AVSpeechUtterance(string: text)
       } else {
