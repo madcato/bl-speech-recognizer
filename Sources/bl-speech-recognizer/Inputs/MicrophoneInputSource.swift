@@ -57,27 +57,32 @@ class MicrophoneInputSource: InputSource {
     audioEngine = AVAudioEngine()
     audioEngine.isAutoShutdownEnabled = false
     
-    // AEC
-//    var voiceProcessingEnabled = false
-//    if #available(iOS 16.0, *) {
-//  #if !os(macOS)
-//      do {
-//        try audioEngine.inputNode.setVoiceProcessingEnabled(true)
-//        voiceProcessingEnabled = true
-//        if #available(iOS 17.0, macOS 14, *) {
-//          audioEngine.inputNode.voiceProcessingOtherAudioDuckingConfiguration = AVAudioVoiceProcessingOtherAudioDuckingConfiguration(enableAdvancedDucking: true, duckingLevel: .max)
-//        }
-//      } catch {
-//        print("[MicrophoneInputSource] Voice processing failed, disabling: \(error)")
-//        voiceProcessingEnabled = false
-//      }
-//  #endif
-//    }
-    
+    // AEC: Enable voice processing if available
+    var voiceProcessingEnabled = false
+    if #available(iOS 16.0, macOS 14.0, *) {
+      #if !os(macOS)
+        let audioSession = AVAudioSession.sharedInstance()
+          do {
+            try audioEngine.inputNode.setVoiceProcessingEnabled(true)
+            voiceProcessingEnabled = true
+            if #available(iOS 17.0, macOS 14.0, *) {
+              audioEngine.inputNode.voiceProcessingOtherAudioDuckingConfiguration = AVAudioVoiceProcessingOtherAudioDuckingConfiguration(enableAdvancedDucking: true, duckingLevel: .max)
+            }
+            print("[MicrophoneInputSource] Voice processing enabled successfully")
+          } catch {
+            print("[MicrophoneInputSource] Voice processing failed, disabling: \(error)")
+            voiceProcessingEnabled = false
+          }
+      #endif
+    }
     
     self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     let inputNode = audioEngine.inputNode
-    inputNode.isVoiceProcessingAGCEnabled = true
+    
+    // Only enable AGC if voice processing is active
+    if voiceProcessingEnabled {
+      inputNode.isVoiceProcessingAGCEnabled = true
+    }
     
     let ibuses = inputNode.numberOfInputs
     let obuses = inputNode.numberOfOutputs
@@ -96,8 +101,12 @@ class MicrophoneInputSource: InputSource {
     }
     inputNode.installTap(onBus: 0, bufferSize: 16384, format: recordingFormat) { [weak self] (buffer, _) in
       self?.audioQueue.async {
-        guard buffer.frameLength > 0, let channelData = buffer.floatChannelData?[0] else {
-          print("Invalid audio buffer, skipping")
+        // Enhanced buffer validation to avoid empty data warnings
+        guard buffer.frameLength > 0,
+              buffer.audioBufferList.pointee.mBuffers.mDataByteSize > 0,
+              let channelData = buffer.floatChannelData?[0] else {
+          // Optional: Log for debugging (remove in production to avoid spam)
+          print("Invalid or empty audio buffer, skipping: frameLength=\(buffer.frameLength), dataByteSize=\(buffer.audioBufferList.pointee.mBuffers.mDataByteSize)")
           return
         }
         self?.recognitionRequest?.append(buffer)
@@ -174,11 +183,13 @@ class MicrophoneInputSource: InputSource {
     
     // Small delay to allow device switching to complete
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-      do {
-        try self?.initializeAudioEngine()
-        print("[MicrophoneInputSource] Audio engine restarted successfully")
-      } catch {
-        print("[MicrophoneInputSource] Failed to restart audio engine: \(error)")
+      Task {
+        do {
+          try self?.initializeAudioEngine()
+          print("[MicrophoneInputSource] Audio engine restarted successfully")
+        } catch {
+          print("[MicrophoneInputSource] Failed to restart audio engine: \(error)")
+        }
       }
     }
   }
