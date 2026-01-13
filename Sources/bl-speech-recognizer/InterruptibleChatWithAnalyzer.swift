@@ -54,7 +54,6 @@ public class InterruptibleChatWithAnalyzer: InterruptibleChatProtocol, @unchecke
     speechSynthesizer = BLSpeechSynthesizer(activateSSML: activateSSML)
     
     // Recognizer construction
-    let inputSource = InputSourceFactory.create(inputSource: inputType)
     speechRecognizer = VoiceChatbotRecognizer(locale: locale)
     
     // Delegates
@@ -76,8 +75,16 @@ public class InterruptibleChatWithAnalyzer: InterruptibleChatProtocol, @unchecke
   ///   - locale: The locale specifying language and regional settings, defaults to current locale.
   ///   - completion: A closure to be executed with the result of the recognition or an error.
   @MainActor
-  public func start(completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
+  public func start(locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
                     event: ((InterrumpibleChatEvent) -> Void)? = nil) {
+    if locale != self.locale {
+      self.locale = locale
+      speechRecognizer = VoiceChatbotRecognizer(locale: locale)
+      
+      // Delegates
+      speechSynthesizer.delegate = self
+      speechRecognizer.delegate = self
+    }
     self.completion = completion
     self.eventLaunch = event
     

@@ -10,7 +10,7 @@ import AVFoundation
 
 public protocol InterruptibleChatProtocol {
   @MainActor
-  func start(completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
+  func start(locale: Locale, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
                     event: ((InterrumpibleChatEvent) -> Void)?)
   @MainActor
   func stop()
@@ -101,8 +101,17 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
   ///   - locale: The locale specifying language and regional settings, defaults to current locale.
   ///   - completion: A closure to be executed with the result of the recognition or an error.
   @MainActor
-  public func start(completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
+  public func start(locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
                     event: ((InterrumpibleChatEvent) -> Void)? = nil) {
+    if locale != self.locale {
+      self.locale = locale
+      let inputSource = InputSourceFactory.create(inputSource: inputType)
+      speechRecognizer = BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: true, task: .dictation)
+      
+      // Delegates
+      speechSynthesizer.delegate = self
+      speechRecognizer.delegate = self
+    }
     self.completion = completion
     self.eventLaunch = event
     
@@ -352,7 +361,7 @@ public class InterruptibleChatMock: InterruptibleChatProtocol {
   }
   
   @MainActor
-  public func start(completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
+  public func start(locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
              event: ((InterrumpibleChatEvent) -> Void)?) {
     self.completion = completion
     self.eventLaunch = event

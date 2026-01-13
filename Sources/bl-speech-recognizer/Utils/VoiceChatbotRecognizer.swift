@@ -36,10 +36,10 @@ class VoiceChatbotRecognizer {
     )
     
     detector = SpeechDetector(
-        detectionOptions: SpeechDetector.DetectionOptions(
-          sensitivityLevel: .medium          // Más agresivo (baja latencia, más falsos positivos)
-        ),
-        reportResults: true
+      detectionOptions: SpeechDetector.DetectionOptions(
+        sensitivityLevel: .medium          // Más agresivo (baja latencia, más falsos positivos)
+      ),
+      reportResults: true
     )
     
     // Configura el analyzer con opciones para baja latencia
@@ -62,63 +62,72 @@ class VoiceChatbotRecognizer {
       fatalError("Not suported language")
     }
     
-    #if !os(macOS)
+#if !os(macOS)
     // Configura la sesión de audio
     let audioSession = AVAudioSession.sharedInstance()
+    var options: AVAudioSession.CategoryOptions = [
+      .allowBluetoothHFP,     // Allow Hands Free Devices
+      .allowBluetoothA2DP,    // AirPods, high-quality auriculars
+      .allowAirPlay,          // AirPods Pro/Max/etc
+      .duckOthers             // Lower other apps volume
+      //                                   .mixWithOthers        // Opyional: if you wnat to mix with other apps
+     ]
+    // Detecta si hay Bluetooth conectado (o AirPods)
+    let isBluetoothConnected = audioSession.currentRoute.outputs.contains { output in
+        output.portType == .bluetoothHFP || output.portType == .bluetoothA2DP
+    }
+    
+    if !isBluetoothConnected {
+        // Solo fuerza speaker cuando NO hay Bluetooth → evita romper mic de AirPods
+        options.insert(.defaultToSpeaker)
+    }
+
     try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                  mode: .voiceChat,
-                                 options: [
-                                   .allowBluetoothHFP,     // Allow Hands Free Devices
-                                   .allowBluetoothA2DP,    // AirPods, high-quality auriculars
-                                   .allowAirPlay,          // AirPods Pro/Max/etc
-                                   .duckOthers,             // Lower other apps volume
-                                   .mixWithOthers        // Opyional: if you wnat to mix with other apps
-                                 ])
+                                 options: options)
     
-    #if os(watchOS)
-      audioSession.activate(completionHandler: { done, error in
-        if let error = error {
-          print(SpeechRecognizerError.auidoPropertiesError.message)
-        }
-      })
-    #endif
-      if #available(iOS 18.2, *) {
-        print("AVAudioSessionCancelledInputAvailable: \(audioSession.isEchoCancelledInputAvailable)")
-        
-        if audioSession.isEchoCancelledInputAvailable {
-          try audioSession.setPrefersEchoCancelledInput(true)
-        }
+#if os(watchOS)
+    audioSession.activate(completionHandler: { done, error in
+      if let error = error {
+        print(SpeechRecognizerError.auidoPropertiesError.message)
       }
-      try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-    #endif
+    })
+#endif
+    if #available(iOS 18.2, *) {
+      print("AVAudioSessionCancelledInputAvailable: \(audioSession.isEchoCancelledInputAvailable)")
+      
+      if audioSession.isEchoCancelledInputAvailable {
+        try audioSession.setPrefersEchoCancelledInput(true)
+      }
+    }
+    try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
     
     audioEngine.isAutoShutdownEnabled = false
     
-    // TODO: Molaría activar el AEC solo si el usuario está usando el default speaker.
-//    // AEC: Enable voice processing if available
-//    var voiceProcessingEnabled = false
-//    if #available(iOS 16.0, macOS 14.0, *) {
-//      #if !os(macOS)
-//        let audioSession = AVAudioSession.sharedInstance()
-//          do {
-//            try audioEngine.inputNode.setVoiceProcessingEnabled(true)
-//            voiceProcessingEnabled = true
-//            if #available(iOS 17.0, macOS 14.0, *) {
-//              audioEngine.inputNode.voiceProcessingOtherAudioDuckingConfiguration = AVAudioVoiceProcessingOtherAudioDuckingConfiguration(enableAdvancedDucking: true, duckingLevel: .max)
-//            }
-//            print("[MicrophoneInputSource] Voice processing enabled successfully")
-//          } catch {
-//            print("[MicrophoneInputSource] Voice processing failed, disabling: \(error)")
-//            voiceProcessingEnabled = false
-//          }
-//      #endif
-//    }
-//    
-//    // Only enable AGC if voice processing is active
-//    if voiceProcessingEnabled {
-//      inputNode.isVoiceProcessingAGCEnabled = true
-//    }
-    
+    if !isBluetoothConnected {
+      // AEC: Enable voice processing if available
+      var voiceProcessingEnabled = false
+      if #available(iOS 16.0, macOS 14.0, *) {
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+          try audioEngine.inputNode.setVoiceProcessingEnabled(true)
+          voiceProcessingEnabled = true
+          if #available(iOS 17.0, macOS 14.0, *) {
+            audioEngine.inputNode.voiceProcessingOtherAudioDuckingConfiguration = AVAudioVoiceProcessingOtherAudioDuckingConfiguration(enableAdvancedDucking: true, duckingLevel: .max)
+          }
+          print("[MicrophoneInputSource] Voice processing enabled successfully")
+        } catch {
+          print("[MicrophoneInputSource] Voice processing failed, disabling: \(error)")
+          voiceProcessingEnabled = false
+        }
+      }
+
+      // Only enable AGC if voice processing is active
+      if voiceProcessingEnabled {
+        inputNode.isVoiceProcessingAGCEnabled = true
+      }
+    }
+#endif
     // Inicia el engine
     try audioEngine.prepare()
     try audioEngine.start()
@@ -170,7 +179,7 @@ class VoiceChatbotRecognizer {
         print("Detector: \(result)")
       }
     }
-        
+    
     // El inputBuilder se usa en processAudioBuffer para enviar buffers
     self.inputBuilder = inputBuilder
   }
