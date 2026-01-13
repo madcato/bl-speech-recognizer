@@ -80,7 +80,7 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
     
     // Recognizer construction
     let inputSource = InputSourceFactory.create(inputSource: inputType)
-    speechRecognizer = BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: true, task: .query)
+    speechRecognizer = BLSpeechRecognizer(inputSource: inputSource, locale: locale, shouldReportPartialResults: true, task: .dictation)
     
     // Delegates
     speechSynthesizer.delegate = self

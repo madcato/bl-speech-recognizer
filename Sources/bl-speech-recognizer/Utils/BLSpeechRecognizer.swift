@@ -86,7 +86,9 @@ final class BLSpeechRecognizer: NSObject, BLSpeechRecognizerInput {
 //      throw SpeechRecognizerError.speechRecognizerNotAvailable
       fatalError()
     }
-    recognizer.supportsOnDeviceRecognition = true
+    if recognizer.supportsOnDeviceRecognition {
+      recognizer.supportsOnDeviceRecognition = true
+    }
     self.speechRecognizer = recognizer
   }
   

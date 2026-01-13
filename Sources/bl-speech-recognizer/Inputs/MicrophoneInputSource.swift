@@ -99,7 +99,7 @@ class MicrophoneInputSource: InputSource {
     guard recordingFormat.sampleRate > 0 else {
       throw SpeechRecognizerError.audioInputFailure("Invalid audio format: Sample rate is 0 Hz. Don't use iOS Simulator.")
     }
-    inputNode.installTap(onBus: 0, bufferSize: 16384, format: recordingFormat) { [weak self] (buffer, _) in
+    inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] (buffer, _) in
       self?.audioQueue.async {
         // Enhanced buffer validation to avoid empty data warnings
         guard buffer.frameLength > 0,
@@ -220,7 +220,13 @@ class MicrophoneInputSource: InputSource {
     do {
       try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
                                    mode: .voiceChat,
-                                   options: [.defaultToSpeaker])  // [.allowBluetooth, .defaultToSpeaker, .allowAirPlay, .allowBluetoothA2DP])
+                                   options: [
+                                     .allowBluetoothHFP,     // Allow Hands Free Devices
+                                     .allowBluetoothA2DP,    // AirPods, high-quality auriculars
+                                     .allowAirPlay,          // AirPods Pro/Max/etc
+                                     .duckOthers             // Lower other apps volume
+                                     // .mixWithOthers        // Opyional: if you wnat to mix with other apps
+                                   ])
 #if os(watchOS)
       audioSession.activate(completionHandler: { done, error in
         if let error = error {
