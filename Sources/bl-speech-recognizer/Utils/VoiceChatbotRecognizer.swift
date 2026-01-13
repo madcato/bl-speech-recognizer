@@ -9,17 +9,23 @@ import AVFoundation
 import Speech
 
 // Clase principal para manejar el reconocimiento de voz en vivo para un chatbot
-@available(macOS 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 class VoiceChatbotRecognizer {
   public weak var delegate: BLSpeechRecognizerDelegate?
   
-  private let audioEngine = AVAudioEngine()
+  private var audioEngine = AVAudioEngine()
+  private let audioQueue = DispatchQueue(label: "com.example.audioProcessing", qos: .userInitiated)
+  
   private let speechAnalyzer: SpeechAnalyzer
   private let transcriber: SpeechTranscriber
   private let detector: SpeechDetector
   private let inputNode: AVAudioInputNode
   private var recognitionTask: Task<Void, Error>?
+  private var detectorTask: Task<Void, Error>?
   private let locale: Locale
+  // The format of the audio.
+  private var analyzerFormat: AVAudioFormat?
+  private let converter = BufferConverter()
   
   init(locale: Locale = .current) {
     self.locale = locale
@@ -31,7 +37,7 @@ class VoiceChatbotRecognizer {
     
     detector = SpeechDetector(
         detectionOptions: SpeechDetector.DetectionOptions(
-          sensitivityLevel: .high          // Más agresivo (baja latencia, más falsos positivos)
+          sensitivityLevel: .medium          // Más agresivo (baja latencia, más falsos positivos)
         ),
         reportResults: true
     )
@@ -56,23 +62,7 @@ class VoiceChatbotRecognizer {
       fatalError("Not suported language")
     }
     
-    // Configura el formato de audio (buffer pequeño para baja latencia)
-    /// Set up the format for recording and add a tap to the audio engine's input node
-    //    let audioFormat = inputNode.outputFormat(forBus: 0)  // 11
-    //    guard audioFormat.sampleRate > 0 else {
-    //      throw SpeechRecognizerError.audioInputFailure("Invalid audio format: Sample rate is 0 Hz. Don't use iOS Simulator.")
-    //    }
-    
-    let audioFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber])
-    
-    // Instala un tap en el inputNode para capturar buffers
-    inputNode.installTap(onBus: 0, bufferSize: 512, format: audioFormat) { [weak self] buffer, time in
-      self?.processAudioBuffer(buffer)
-    }
-    
-    try await speechAnalyzer.prepareToAnalyze(in: audioFormat)
-    
-#if !os(macOS)
+    #if !os(macOS)
     // Configura la sesión de audio
     let audioSession = AVAudioSession.sharedInstance()
     try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
@@ -81,23 +71,75 @@ class VoiceChatbotRecognizer {
                                    .allowBluetoothHFP,     // Allow Hands Free Devices
                                    .allowBluetoothA2DP,    // AirPods, high-quality auriculars
                                    .allowAirPlay,          // AirPods Pro/Max/etc
-                                   .duckOthers             // Lower other apps volume
-                                   // .mixWithOthers        // Opyional: if you wnat to mix with other apps
+                                   .duckOthers,             // Lower other apps volume
+                                   .mixWithOthers        // Opyional: if you wnat to mix with other apps
                                  ])
     
-    if #available(iOS 18.2, *) {
-      print("AVAudioSessionCancelledInputAvailable: \(audioSession.isEchoCancelledInputAvailable)")
-      
-      if audioSession.isEchoCancelledInputAvailable {
-        try audioSession.setPrefersEchoCancelledInput(true)
+    #if os(watchOS)
+      audioSession.activate(completionHandler: { done, error in
+        if let error = error {
+          print(SpeechRecognizerError.auidoPropertiesError.message)
+        }
+      })
+    #endif
+      if #available(iOS 18.2, *) {
+        print("AVAudioSessionCancelledInputAvailable: \(audioSession.isEchoCancelledInputAvailable)")
+        
+        if audioSession.isEchoCancelledInputAvailable {
+          try audioSession.setPrefersEchoCancelledInput(true)
+        }
       }
-    }
-    try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-#endif
+      try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+    #endif
+    
+    audioEngine.isAutoShutdownEnabled = false
+    
+    // TODO: Molaría activar el AEC solo si el usuario está usando el default speaker.
+//    // AEC: Enable voice processing if available
+//    var voiceProcessingEnabled = false
+//    if #available(iOS 16.0, macOS 14.0, *) {
+//      #if !os(macOS)
+//        let audioSession = AVAudioSession.sharedInstance()
+//          do {
+//            try audioEngine.inputNode.setVoiceProcessingEnabled(true)
+//            voiceProcessingEnabled = true
+//            if #available(iOS 17.0, macOS 14.0, *) {
+//              audioEngine.inputNode.voiceProcessingOtherAudioDuckingConfiguration = AVAudioVoiceProcessingOtherAudioDuckingConfiguration(enableAdvancedDucking: true, duckingLevel: .max)
+//            }
+//            print("[MicrophoneInputSource] Voice processing enabled successfully")
+//          } catch {
+//            print("[MicrophoneInputSource] Voice processing failed, disabling: \(error)")
+//            voiceProcessingEnabled = false
+//          }
+//      #endif
+//    }
+//    
+//    // Only enable AGC if voice processing is active
+//    if voiceProcessingEnabled {
+//      inputNode.isVoiceProcessingAGCEnabled = true
+//    }
     
     // Inicia el engine
     try audioEngine.prepare()
     try audioEngine.start()
+    
+    // Configura el formato de audio (buffer pequeño para baja latencia)
+    // Set up the format for recording and add a tap to the audio engine's input node
+    let audioFormat = inputNode.inputFormat(forBus: 0)  // 11
+    guard audioFormat.sampleRate > 0 else {
+      throw SpeechRecognizerError.audioInputFailure("Invalid audio format: Sample rate is 0 Hz. Don't use iOS Simulator.")
+    }
+    
+    self.analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [detector, transcriber])
+    
+    // Instala un tap en el inputNode para capturar buffers
+    inputNode.installTap(onBus: 0, bufferSize: 512, format: audioFormat) { [weak self] buffer, time in
+      self?.audioQueue.async {
+        self?.processAudioBuffer(buffer)
+      }
+    }
+    
+    try await speechAnalyzer.prepareToAnalyze(in: self.analyzerFormat )
     
     // Crea un AsyncStream para alimentar el analyzer
     let (inputSequence, inputBuilder) = AsyncStream<AnalyzerInput>.makeStream()
@@ -115,11 +157,20 @@ class VoiceChatbotRecognizer {
           print("IsFinal: \(isFinal), Recognized: \(plainTextBestTranscription)")
           self.delegate?.recognized(text: plainTextBestTranscription, isFinal: isFinal)
         }
+        
+        
       } catch {
         self.delegate?.speechRecognizer(error: error)
       }
     }
     
+    detectorTask = Task {
+      // Procesa resultados en tiempo real
+      for try await result in detector.results {
+        print("Detector: \(result)")
+      }
+    }
+        
     // El inputBuilder se usa en processAudioBuffer para enviar buffers
     self.inputBuilder = inputBuilder
   }
@@ -128,8 +179,9 @@ class VoiceChatbotRecognizer {
   
   // Procesa cada buffer de audio capturado
   private func processAudioBuffer(_ buffer: AVAudioPCMBuffer) {
-    guard let inputBuilder = inputBuilder else { return }
-    inputBuilder.yield(AnalyzerInput(buffer: buffer))
+    guard let inputBuilder = inputBuilder, let analyzerFormat = self.analyzerFormat else { return }
+    guard let converted = try? self.converter.convertBuffer(buffer, to: analyzerFormat) else { return }
+    inputBuilder.yield(AnalyzerInput(buffer: converted))
   }
   
   // Detiene el reconocimiento
