@@ -84,6 +84,12 @@ class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol {
   private var pitchMultiplier: Float?
   private var activateSSML: Bool = false
   
+  /// Number of utterances currently queued in the synthesizer
+  private var queuedUtteranceCount: Int = 0
+  
+  /// Minimum number of utterances to keep queued for seamless playback
+  private let minQueuedUtterances: Int = 2
+  
   var isSpeaking: Bool {
     return synthesizer.isSpeaking ?? false
   }
@@ -103,7 +109,8 @@ class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol {
     setVoice(voice)
     isFinished = isFinal
     buffer.onMessageReceived(text: str)
-    internalSpeak()
+    // Queue multiple utterances for seamless playback
+    enqueueAvailableUtterances()
   }
   
   func pause() {
@@ -111,12 +118,13 @@ class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol {
   }
   
   func resume() {
-    internalSpeak()
+    enqueueAvailableUtterances()
   }
   
   func stop() {
     synthesizer.stopSpeaking(at: AVSpeechBoundary.immediate)
     buffer.reset()
+    queuedUtteranceCount = 0
   }
   
   static func availableVoices() -> [Voice] {
@@ -129,40 +137,48 @@ class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol {
     }
   }
   
-  private func internalSpeak() {
-    buffer.flush(all: isFinished) { text in
-      //      print("[voice][SSML] \(text)")
-      //      let ssmlText = "<?xml version=\"1.0\"?>\(text)"
-      guard text.isEmpty == false else { return }
-      let utterance = if #available(iOS 16.0, macOS 13.0, *), activateSSML == true {
-        AVSpeechUtterance(ssmlRepresentation: text.trimmingCharacters(in: .whitespacesAndNewlines)) ?? AVSpeechUtterance(string: text)
-      } else {
-        AVSpeechUtterance(string: text)
-      }
+  /// Enqueues all available utterances from the buffer.
+  /// This method flushes multiple chunks to maintain a queue of utterances
+  /// for seamless, gap-free playback.
+  private func enqueueAvailableUtterances() {
+    // Keep flushing until we have enough queued or buffer is exhausted
+    var didEnqueue = true
+    while didEnqueue {
+      didEnqueue = false
       
-//      utterance.voice = self.voice
-      if let rate = rate {
-        utterance.rate = rate
-      }
-      if let pitchMultiplier = pitchMultiplier {
-        utterance.pitchMultiplier = pitchMultiplier
-      }
-      
-      DispatchQueue.main.async {
-        if let internalVoice = self.internalVoice {
-          let voiceIdentifier = internalVoice.identifier
-          
-          // Aquí se carga la voz fuera del MainActor → sin unsafeForcedSync
-          if let avVoice = AVSpeechSynthesisVoice(identifier: voiceIdentifier) {
-            self.rate = internalVoice.rate
-            self.pitchMultiplier = internalVoice.pitchMultiplier
-            utterance.voice = avVoice         // ← ahora ya es seguro
-            
-          }
+      buffer.flush(all: isFinished) { text in
+        guard text.isEmpty == false else { return }
+        
+        let utterance = if #available(iOS 16.0, macOS 13.0, *), activateSSML == true {
+          AVSpeechUtterance(ssmlRepresentation: text.trimmingCharacters(in: .whitespacesAndNewlines)) ?? AVSpeechUtterance(string: text)
+        } else {
+          AVSpeechUtterance(string: text)
         }
         
-        self.synthesizer.delegate = self
-        self.synthesizer.speak(utterance)
+        if let rate = rate {
+          utterance.rate = rate
+        }
+        if let pitchMultiplier = pitchMultiplier {
+          utterance.pitchMultiplier = pitchMultiplier
+        }
+        
+        DispatchQueue.main.async {
+          if let internalVoice = self.internalVoice {
+            let voiceIdentifier = internalVoice.identifier
+            
+            if let avVoice = AVSpeechSynthesisVoice(identifier: voiceIdentifier) {
+              self.rate = internalVoice.rate
+              self.pitchMultiplier = internalVoice.pitchMultiplier
+              utterance.voice = avVoice
+            }
+          }
+          
+          self.synthesizer.delegate = self
+          self.synthesizer.speak(utterance)
+          self.queuedUtteranceCount += 1
+        }
+        
+        didEnqueue = true
       }
     }
   }
@@ -205,10 +221,14 @@ extension BLSpeechSynthesizer: AVSpeechSynthesizerDelegate {
   }
   
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-    if isFinished {
+    queuedUtteranceCount = max(0, queuedUtteranceCount - 1)
+    
+    // Try to enqueue more utterances to maintain seamless playback
+    enqueueAvailableUtterances()
+    
+    // Only signal finished when stream is complete AND no more queued utterances
+    if isFinished && queuedUtteranceCount == 0 {
       delegate?.synthesizerFinished()
-    } else {
-      internalSpeak()
     }
   }
   

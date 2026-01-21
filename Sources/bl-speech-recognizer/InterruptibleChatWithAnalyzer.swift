@@ -283,21 +283,21 @@ extension InterruptibleChatWithAnalyzer: @preconcurrency BLSpeechRecognizerDeleg
     
     switch isFinal {
     case true:
-//      self.completion(.success(.init(text: self.detectedSpeech, isFinal: true)))
+      self.completion(.success(.init(text: self.detectedSpeech, isFinal: true)))
       self.detectedSpeech = ""
       break
     case false:
       userIsSpeaking()
-      DispatchQueue.main.async { [weak self] in
-          guard let self else { return }
-          
-          self.timer?.invalidate()
-          self.timer = Timer.scheduledTimer(withTimeInterval: self.waitTime, repeats: false) { timer in
-              // Tu lógica de finalización
-              self.completion(.success(.init(text: self.detectedSpeech, isFinal: true)))
-              self.detectedSpeech = ""
-          }
-      }
+//      DispatchQueue.main.async { [weak self] in
+//          guard let self else { return }
+//          
+//          self.timer?.invalidate()
+//          self.timer = Timer.scheduledTimer(withTimeInterval: self.waitTime, repeats: false) { timer in
+//              // Tu lógica de finalización
+//              self.completion(.success(.init(text: self.detectedSpeech, isFinal: true)))
+//              self.detectedSpeech = ""
+//          }
+//      }
     }
 //    print("[org.veladan.voice] thread id: \(Thread.current), recognized speech: \(text)")
   }
