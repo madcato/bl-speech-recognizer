@@ -52,37 +52,18 @@ class MicrophoneInputSource: InputSource {
   
   /// Internal method to initialize or reinitialize the audio engine
   private func initializeAudioEngine() throws {
-    configureAudioSession()
+    try AudioSessionManager.configureAudioSession(
+      configuration: .init(detectBluetooth: false)
+    )
     
     audioEngine = AVAudioEngine()
     audioEngine.isAutoShutdownEnabled = false
     
-    // AEC: Enable voice processing if available
-    var voiceProcessingEnabled = false
-    if #available(iOS 16.0, macOS 14.0, *) {
-      #if !os(macOS)
-        let audioSession = AVAudioSession.sharedInstance()
-          do {
-            try audioEngine.inputNode.setVoiceProcessingEnabled(true)
-            voiceProcessingEnabled = true
-            if #available(iOS 17.0, macOS 14.0, *) {
-              audioEngine.inputNode.voiceProcessingOtherAudioDuckingConfiguration = AVAudioVoiceProcessingOtherAudioDuckingConfiguration(enableAdvancedDucking: true, duckingLevel: .max)
-            }
-            print("[MicrophoneInputSource] Voice processing enabled successfully")
-          } catch {
-            print("[MicrophoneInputSource] Voice processing failed, disabling: \(error)")
-            voiceProcessingEnabled = false
-          }
-      #endif
-    }
+    // Configure voice processing using the shared manager
+    AudioSessionManager.configureVoiceProcessing(on: audioEngine)
     
     self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
     let inputNode = audioEngine.inputNode
-    
-    // Only enable AGC if voice processing is active
-    if voiceProcessingEnabled {
-      inputNode.isVoiceProcessingAGCEnabled = true
-    }
     
     let ibuses = inputNode.numberOfInputs
     let obuses = inputNode.numberOfOutputs
@@ -211,44 +192,7 @@ class MicrophoneInputSource: InputSource {
     recognitionRequest = nil
   }
   
-  /// Configure the audio session specifically for capturing spoken audio.
-  /// This method sets the category, mode, and options for best results during speech capture.
-  func configureAudioSession() {
-#if !os(macOS)
-    let audioSession = AVAudioSession.sharedInstance()
-    
-    do {
-      try audioSession.setCategory(AVAudioSession.Category.playAndRecord,
-                                   mode: .voiceChat,
-                                   options: [
-                                     .allowBluetoothHFP,     // Allow Hands Free Devices
-                                     .allowBluetoothA2DP,    // AirPods, high-quality auriculars
-                                     .allowAirPlay,          // AirPods Pro/Max/etc
-                                     .duckOthers             // Lower other apps volume
-                                     // .mixWithOthers        // Opyional: if you wnat to mix with other apps
-                                   ])
-#if os(watchOS)
-      audioSession.activate(completionHandler: { done, error in
-        if let error = error {
-          print(SpeechRecognizerError.auidoPropertiesError.message)
-        }
-      })
-#elseif !os(macOS)
-      if #available(iOS 18.2, *) {
-        print("AVAudioSessionCancelledInputAvailable: \(audioSession.isEchoCancelledInputAvailable)")
-        
-        if audioSession.isEchoCancelledInputAvailable {
-          try audioSession.setPrefersEchoCancelledInput(true)
-        }
-      }
-      try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-#endif
-    } catch {
-      // Logs an error if audio session properties can't be set
-      fatalError(SpeechRecognizerError.auidoPropertiesError(error.localizedDescription).errorDescription ?? "Unknown error.")
-    }
-#endif
-  }
+
   
   // MARK: - Audio Device Change Notifications
   
