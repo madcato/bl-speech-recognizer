@@ -1,0 +1,29 @@
+# SwiftFormat configuration
+# https://github.com/nicklockwood/SwiftFormat
+
+# file options
+--exclude .build, .swiftpm, .git, doc, examples
+
+# format options
+--indent 2
+--tabwidth 2
+--trimwhitespace always
+--insertlines
+--removelines
+--allman false
+--ifdef indent
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections before-first
+--maxwidth 120
+
+# rules
+--enable isEmpty
+--enable sortedImports
+--enable unusedArguments
+--disable trailingClosures
+--disable strongOutlets
+--disable redundantSelf
+--disable initCoderUnavailable
+--disable extensionAccessControl
+--disable typeSugar

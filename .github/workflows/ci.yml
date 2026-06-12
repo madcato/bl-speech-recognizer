@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, 'refactor/*']
+  pull_request:
+    branches: [main, develop, 'refactor/*']
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build
+      - name: Test
+        run: swift test
+      - name: Check formatting
+        run: |
+          if command -v swiftformat &> /dev/null; then
+            swiftformat --lint .
+          else
+            echo "swiftformat not installed, skipping format check"
+          fi
