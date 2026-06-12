@@ -60,23 +60,23 @@ public class ContinuousSpeechRecognizer {
 // MARK: - BLSpeechRecognizerDelegate
 
 extension ContinuousSpeechRecognizer: BLSpeechRecognizerDelegate {
-  func recognized(text: String, isFinal: Bool) {
+  public func recognized(text: String, isFinal: Bool) {
     completion(.success(text))
   }
   
-  func started() {
+  public func started() {
     eventLaunch?(.startedListening)
   }
   
-  func finished() {
+  public func finished() {
     eventLaunch?(.stoppedListening)
   }
   
-  func speechRecognizer(available: Bool) {
+  public func speechRecognizer(available: Bool) {
     // TODO: Notify the client of availability change
   }
   
-  func speechRecognizer(error: any Error) {
+  public func speechRecognizer(error: any Error) {
       completion?(.failure(error))
   }
 }

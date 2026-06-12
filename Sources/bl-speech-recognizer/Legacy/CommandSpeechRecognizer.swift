@@ -67,7 +67,7 @@ public class CommandSpeechRecognizer: @unchecked Sendable {
 
 extension CommandSpeechRecognizer: BLSpeechRecognizerDelegate {
   
-  func recognized(text: String, isFinal: Bool) {
+  public func recognized(text: String, isFinal: Bool) {
     // Append the newly recognized text
     if isFinal {
       self.completion(.success(lastRecognizedText))
@@ -84,19 +84,19 @@ extension CommandSpeechRecognizer: BLSpeechRecognizerDelegate {
   }
   
   
-  func started() {
+  public func started() {
     eventLaunch?(.startedListening)
   }
   
-  func finished() {
+  public func finished() {
     eventLaunch?(.stoppedListening)
   }
   
-  func speechRecognizer(available: Bool) {
+  public func speechRecognizer(available: Bool) {
     // TODO: send to client
   }
   
-  func speechRecognizer(error: any Error) {
-      completion?(.failure(error))
+  public func speechRecognizer(error: any Error) {
+    completion?(.failure(error))
   }
 }

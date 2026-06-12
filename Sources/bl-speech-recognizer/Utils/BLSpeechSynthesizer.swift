@@ -54,19 +54,6 @@ public struct Voice: Hashable {
   public var quality: VoiceQuality
 }
 
-protocol BLSpeechSynthesizerDelegate: AnyObject {
-  func synthesizerStarted()
-  func synthesizerFinished()
-  func synthesizing(range: NSRange)
-}
-
-protocol SpeechSynthesizerProtocol {
-  func speak(_ text: String, isFinal: Bool, voice: Voice?)
-  func pause()
-  func resume()
-  func stop()
-}
-
 class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol {
   private lazy var synthesizer: AVSpeechSynthesizer = {
       let s = AVSpeechSynthesizer()

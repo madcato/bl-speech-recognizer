@@ -295,7 +295,7 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
 // MARK: - BLSpeechRecognizerDelegate
 
 extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
-  @MainActor func recognized(text: String, isFinal: Bool) {
+  @MainActor public func recognized(text: String, isFinal: Bool) {
     self.detectedSpeech = text
     
     switch isFinal {
@@ -308,33 +308,33 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
     }
   }
   
-  func started() {
+  public func started() {
     eventLaunch?(.startedListening)
   }
   
-  func finished() {
+  public func finished() {
     eventLaunch?(.stoppedListening)
   }
   
-  func speechRecognizer(available: Bool) {
+  public func speechRecognizer(available: Bool) {
     // TODO: Notify the client of availability change
   }
   
-  func speechRecognizer(error: any Error) {
+  public func speechRecognizer(error: any Error) {
     completion?(.failure(error))
   }
 }
 
 extension InterruptibleChat: BLSpeechSynthesizerDelegate {
-  func synthesizerStarted() {
+  public func synthesizerStarted() {
     eventLaunch?(.startedSpeaking)
   }
   
-  func synthesizerFinished() {
+  public func synthesizerFinished() {
     eventLaunch?(.stoppedSpeaking)
   }
   
-  func synthesizing(range: NSRange) {
+  public func synthesizing(range: NSRange) {
     eventLaunch?(.synthesizingRange(range))
   }
   

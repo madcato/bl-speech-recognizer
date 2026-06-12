@@ -7,34 +7,6 @@
 
 import Speech
 
-protocol BLSpeechRecognizerDelegate: AnyObject {
-  /// Called when speech recognition has recognized text.
-  ///
-  /// - Parameters:
-  ///   - text: The recognized text. This value is empty string, when `isFinal` is **true**.
-  ///   - isFinal: Boolean indicating if the recognition result is final.
-  func recognized(text: String, isFinal: Bool)
-  /// Called when the speech recognition has started.
-  func started()
-  /// Called when the speech recognition has finished.
-  func finished()
-  /// Called when the availability of the speech recognizer changes.
-  ///
-  /// - Parameter available: Boolean indicating if the recognizer is available.
-  func speechRecognizer(available: Bool)
-  /// Called when an error occurs during speech recognition.
-  ///
-  /// - Parameter error: The error occurred during recognition.
-  func speechRecognizer(error: Error)
-}
-
-protocol BLSpeechRecognizerInput {
-  func requestAuthorization(_ onFinish: @escaping (Result<Bool, Error>) throws -> Void)
-  func start()
-  func resume()
-  func pause()
-}
-
 enum BLTaskType {
   /// Use this when the recognition requires more than a few seconds or undefined time
   case dictation
