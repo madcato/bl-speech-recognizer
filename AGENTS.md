@@ -88,27 +88,28 @@ Apps using this library **must** add these keys to their `Info.plist`:
 
 ```
 Sources/bl-speech-recognizer/
-  ├── ContinuousSpeechRecognizer.swift      # Public API: dictation
-  ├── CommandSpeechRecognizer.swift           # Public API: short commands
-  ├── InterruptibleChat.swift                 # Public API: chat + TTS
-  ├── InterruptibleChatWithAnalyzer.swift     # Public API: iOS 26+ chat
-  ├── AudioDeviceMonitor.swift                # Hardware change notifications
+  ├── Legacy/
+  │   ├── ContinuousSpeechRecognizer.swift    # Public API: dictation (SFSpeechRecognizer)
+  │   ├── CommandSpeechRecognizer.swift         # Public API: short commands (SFSpeechRecognizer)
+  │   └── InterruptibleChat.swift               # Public API: chat + TTS (SFSpeechRecognizer)
+  ├── Modern/
+  │   ├── InterruptibleChatWithAnalyzer.swift   # Public API: iOS 26+ chat (SpeechAnalyzer)
+  │   └── VoiceChatbotRecognizer.swift          # iOS 26+ SpeechAnalyzer wrapper
+  ├── AudioDeviceMonitor.swift                  # Hardware change notifications
   ├── Inputs/
-  │   ├── InputSource.swift                   # Protocol + factory
-  │   ├── MicrophoneInputSource.swift         # Live audio input
-  │   ├── AudioFileInput.swift                # File-based input
-  │   └── CustomInputSource.swift             # Custom buffer input
+  │   ├── InputSource.swift                     # Protocol + factory
+  │   ├── MicrophoneInputSource.swift           # Live audio input
+  │   ├── AudioFileInput.swift                  # File-based input
+  │   └── CustomInputSource.swift               # Custom buffer input
   ├── Utils/
-  │   ├── BLSpeechRecognizer.swift            # Internal SFSpeechRecognizer wrapper
-  │   ├── BLSpeechSynthesizer.swift           # Internal AVSpeechSynthesizer wrapper
-  │   ├── AudioSessionManager.swift           # AVAudioSession setup
-  │   ├── VoiceChatbotRecognizer.swift         # iOS 26+ SpeechAnalyzer wrapper
-  │   ├── BLStringBuffer.swift                # Text buffering helpers
-  │   ├── BLResponseStringBuffer.swift          # SSML-aware buffer
-  │   ├── BLResponseSSMLStringBuffer.swift      # (mostly unused)
-  │   ├── BufferConverter.swift               # Audio buffer format conversion
-  │   └── PermissionChecker.swift             # Speech / mic permission checks
+  │   ├── BLSpeechRecognizer.swift              # Internal SFSpeechRecognizer wrapper
+  │   ├── BLSpeechSynthesizer.swift             # Internal AVSpeechSynthesizer wrapper
+  │   ├── AudioSessionManager.swift             # AVAudioSession setup
+  │   ├── BLStringBuffer.swift                  # Text buffering helpers
+  │   ├── BLResponseStringBuffer.swift            # Text buffering with clause boundaries
+  │   ├── BufferConverter.swift                 # Audio buffer format conversion
+  │   └── PermissionChecker.swift               # Speech / mic permission checks
   └── Models/
-      ├── SpeechRecognitionResult.swift       # Result models
-      └── SpeechRecognizerError.swift         # Error enum
+      ├── SpeechRecognitionResult.swift         # Result models
+      └── SpeechRecognizerError.swift           # Error enum
 ```
