@@ -38,8 +38,10 @@ The library exposes three main recognizers:
 
 ## Concurrency & Safety
 
-- Multiple classes use `@unchecked Sendable` (e.g., `CommandSpeechRecognizer`, `InterruptibleChat`). This is **not guaranteed safe** — the author was suppressing warnings during experimentation.
-- Many `start` / `stop` methods are marked `@MainActor`. When refactoring, prefer proper Swift Concurrency (`isolated` parameters, `Actor` types) over `@unchecked Sendable`.
+- All public API classes are now `@MainActor` + `Sendable`:
+  - `ContinuousSpeechRecognizer`, `CommandSpeechRecognizer`, `InterruptibleChat`
+  - `InterruptibleChatWithAnalyzer` (iOS 26+)
+- `listVoices()` is `nonisolated` and can be called from any context
 - `BLSpeechRecognizerDelegate` and `BLSpeechSynthesizerDelegate` are `AnyObject` (class-only) protocols. Watch for retain cycles.
 
 ## Permissions & Entitlements
