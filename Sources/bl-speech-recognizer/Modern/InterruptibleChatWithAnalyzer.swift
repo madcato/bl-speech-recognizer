@@ -15,7 +15,8 @@ import AVFoundation
 /// It can be used in long interactions with the user, like a chat.
 /// It manages the lifecycle of speech recognition using a `BLSpeechRecognizer` instance and informs the client of results and events.
 @available(iOS 26.0, macOS 26.0, *)
-public class InterruptibleChatWithAnalyzer: InterruptibleChatProtocol, @unchecked Sendable {
+@MainActor
+public class InterruptibleChatWithAnalyzer: InterruptibleChatProtocol, Sendable {
   public struct Completion {
     public let text: String
     public let isFinal: Bool
@@ -37,7 +38,7 @@ public class InterruptibleChatWithAnalyzer: InterruptibleChatProtocol, @unchecke
   private var waitTime: TimeInterval = 0.5
   
   // Audio device monitoring properties
-  private var deviceChangeObserver: NSObjectProtocol?
+  nonisolated(unsafe) private var deviceChangeObserver: NSObjectProtocol?
   private var lastKnownInputDevice: String?
   private var isMonitoringDevices = false
   private var inputType: InputSourceType
@@ -174,7 +175,7 @@ public class InterruptibleChatWithAnalyzer: InterruptibleChatProtocol, @unchecke
     #endif
   }
   
-  private func stopAudioDeviceMonitoring() {
+  nonisolated private func stopAudioDeviceMonitoring() {
     if let observer = deviceChangeObserver {
       NotificationCenter.default.removeObserver(observer)
       deviceChangeObserver = nil

@@ -9,6 +9,7 @@ import XCTest
 @testable import bl_speech_recognizer
 
 // XCTest for ContinuousSpeechRecognizer
+@MainActor
 final class ContinuousSpeechRecognizerTests: XCTestCase {
 
   var speechRecognizer: ContinuousSpeechRecognizer!

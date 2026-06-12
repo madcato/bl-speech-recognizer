@@ -15,7 +15,8 @@ public enum ContinuousSpeechRecognizerEvent {
 /// The `ContinuousSpeechRecognizer` class is responsible for handling continuous speech recognition.
 /// It can be used in long interactions with the user, like a chat or a dictation.
 /// It manages the lifecycle of speech recognition using a `BLSpeechRecognizer` instance and informs the client of results and events.
-public class ContinuousSpeechRecognizer {
+@MainActor
+public class ContinuousSpeechRecognizer: Sendable {
   // The speech recognizer responsible for interpreting audio input.
   private var speechRecognizer: BLSpeechRecognizer!
   

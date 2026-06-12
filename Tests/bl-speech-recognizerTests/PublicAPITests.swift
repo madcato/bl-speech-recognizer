@@ -6,17 +6,17 @@ import Testing
 struct PublicAPITests {
 
   @Test("ContinuousSpeechRecognizer can be initialized")
-  func testContinuousSpeechRecognizerInit() {
+  @MainActor func testContinuousSpeechRecognizerInit() {
     _ = ContinuousSpeechRecognizer()
   }
 
   @Test("CommandSpeechRecognizer can be initialized")
-  func testCommandSpeechRecognizerInit() {
+  @MainActor func testCommandSpeechRecognizerInit() {
     _ = CommandSpeechRecognizer()
   }
 
   @Test("InterruptibleChat can be initialized")
-  func testInterruptibleChatInit() {
+  @MainActor func testInterruptibleChatInit() {
     _ = InterruptibleChat(inputType: .microphone, activateSSML: false)
   }
 

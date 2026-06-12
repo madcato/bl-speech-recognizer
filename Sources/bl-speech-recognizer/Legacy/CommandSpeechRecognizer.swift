@@ -13,7 +13,8 @@ public enum CommandSpeechRecognizerEvent {
 }
 
 /// A speech recognizer that handles voice commands using a specific input source and locale
-public class CommandSpeechRecognizer: @unchecked Sendable {
+@MainActor
+public class CommandSpeechRecognizer: Sendable {
   
   /// The speech recognizer instance that processes the audio input.
   private var speechRecognizer: BLSpeechRecognizer!

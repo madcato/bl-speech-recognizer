@@ -40,7 +40,8 @@ public typealias InterrumpibleChatEvent = InterruptibleChatEvent
 /// The text to be synthesize can be added as a stream. This class store the text to be synthesized.
 /// It can be used in long interactions with the user, like a chat.
 /// It manages the lifecycle of speech recognition using a `BLSpeechRecognizer` instance and informs the client of results and events.
-public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
+@MainActor
+public class InterruptibleChat: InterruptibleChatProtocol, Sendable {
   public struct Completion {
     public let text: String
     public let isFinal: Bool
@@ -62,7 +63,7 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
   private var waitTime: TimeInterval = 1.0
   
   // Audio device monitoring properties
-  private var deviceChangeObserver: NSObjectProtocol?
+  nonisolated(unsafe) private var deviceChangeObserver: NSObjectProtocol?
   private var lastKnownInputDevice: String?
   private var isMonitoringDevices = false
   private var inputType: InputSourceType
@@ -154,7 +155,7 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
   }
   
   /// List all available voices
-  public static func listVoices() -> [Voice] {
+  nonisolated public static func listVoices() -> [Voice] {
     return BLSpeechSynthesizer.availableVoices()
   }
   
@@ -193,7 +194,7 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
     #endif
   }
   
-  private func stopAudioDeviceMonitoring() {
+  nonisolated private func stopAudioDeviceMonitoring() {
     if let observer = deviceChangeObserver {
       NotificationCenter.default.removeObserver(observer)
       deviceChangeObserver = nil
