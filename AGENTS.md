@@ -67,9 +67,9 @@ Apps using this library **must** add these keys to their `Info.plist`:
 
 ## Environment & Tooling
 
-- **No SwiftLint / SwiftFormat / CI** — there are zero config files for linting or formatting.
-- `.build/` is in `.gitignore` but the repo currently tracks `.build/` files. When refactoring, clean this up.
-- `.swiftpm/xcode/` contains generated Xcode schemes; safe to ignore or regenerate.
+- **No SwiftLint / SwiftFormat** — no config files for linting or formatting.
+- `.build/` is properly ignored in `.gitignore`.
+- `.swiftpm/` is now ignored (was previously tracked with generated Xcode scheme files).
 - The `.sisyphus` directory contains OpenCode session metadata; do not edit.
 
 ## Dependencies
