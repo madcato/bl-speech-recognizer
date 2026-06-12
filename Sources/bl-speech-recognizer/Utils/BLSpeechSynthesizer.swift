@@ -207,11 +207,7 @@ class BLSpeechSynthesizer: NSObject, SpeechSynthesizerProtocol {
   }
   
   private static func activateSSML(_ activate: Bool) -> BLStringBuffer {
-    if activate {
-      return BLResponseSSMLStringBuffer(minLength: 10)
-    } else {
-      return BLResponseStringBuffer(minLength: 10)
-    }
+    return BLResponseStringBuffer(minLength: 10)
   }
 }
 

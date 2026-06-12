@@ -68,7 +68,7 @@ class AudioSessionManager {
 #if os(watchOS)
       audioSession.activate { done, error in
         if let error = error {
-          print(SpeechRecognizerError.auidoPropertiesError.message)
+          print(SpeechRecognizerError.audioPropertiesError.localizedDescription)
         }
       }
 #else
@@ -86,7 +86,7 @@ class AudioSessionManager {
       try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
 #endif
     } catch {
-      throw SpeechRecognizerError.auidoPropertiesError(error.localizedDescription)
+      throw SpeechRecognizerError.audioPropertiesError(error.localizedDescription)
     }
 #endif
   }

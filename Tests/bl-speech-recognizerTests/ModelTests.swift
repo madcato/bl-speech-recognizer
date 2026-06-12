@@ -41,7 +41,7 @@ struct ModelTests {
 
   @Test("SpeechRecognizerError with associated value includes message")
   func testSpeechRecognizerErrorWithMessage() {
-    let error = SpeechRecognizerError.auidoPropertiesError("Invalid format")
+    let error = SpeechRecognizerError.audioPropertiesError("Invalid format")
     #expect(error.errorDescription?.contains("Invalid format") == true)
   }
 

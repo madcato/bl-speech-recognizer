@@ -29,7 +29,7 @@ public class InterruptibleChatWithAnalyzer: InterruptibleChatProtocol, @unchecke
   // Closure to be called upon completion with the recognition result or an error.
   private var completion: ((Result<InterruptibleChat.Completion, Error>) -> Void)!
   // Closure to be called upon an event appears
-  private var eventLaunch: ((InterrumpibleChatEvent) -> Void)?
+  private var eventLaunch: ((InterruptibleChatEvent) -> Void)?
   
   private var detectedSpeech = ""
   private var timer: Timer?
@@ -76,7 +76,7 @@ public class InterruptibleChatWithAnalyzer: InterruptibleChatProtocol, @unchecke
   ///   - completion: A closure to be executed with the result of the recognition or an error.
   @MainActor
   public func start(locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
-                    event: ((InterrumpibleChatEvent) -> Void)? = nil) {
+                    event: ((InterruptibleChatEvent) -> Void)? = nil) {
     if locale != self.locale {
       self.locale = locale
       speechRecognizer = VoiceChatbotRecognizer(locale: locale)
@@ -335,58 +335,4 @@ extension InterruptibleChatWithAnalyzer: BLSpeechSynthesizerDelegate {
   
 }
 
-// MARK: - InterruptibleChat mock
 
-//public class InterruptibleChatMock: InterruptibleChatProtocol {
-//  private var completion: ((Result<InterruptibleChat.Completion, Error>) -> Void)!
-//  // Closure to be called upon an event appears
-//  private var eventLaunch: ((InterrumpibleChatEvent) -> Void)?
-//  
-//  private let recognized: [String]
-//  public var speaked: String = ""
-//  
-//  public init(recognized: [String]) {
-//    self.recognized = recognized
-//  }
-//  
-//  @MainActor
-//  public func start(completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
-//             event: ((InterrumpibleChatEvent) -> Void)?) {
-//    self.completion = completion
-//    self.eventLaunch = event
-//    
-//    self.eventLaunch?(.startedListening)
-//    for text in recognized {
-//      self.eventLaunch?(.detectedSpeaking)
-//      self.completion(.success(.init(text: text, isFinal: false)))
-//    }
-//    
-//    self.completion(.success(.init(text: "", isFinal: true)))
-//  }
-//  
-//  @MainActor
-//  public func stop() {
-//    self.eventLaunch?(.stoppedListening)
-//  }
-//  
-//  @MainActor
-//  public func synthesize(text: String, isFinal: Bool) {
-//    self.eventLaunch?(.startedSpeaking)
-//    self.speaked.append(text)
-//  }
-//  
-//  @MainActor
-//  public func synthesize(text: String, isFinal: Bool, voice: Voice, activateSSML: Bool) {
-//    self.eventLaunch?(.startedSpeaking)
-//    self.speaked.append(text)
-//  }
-//  
-//  @MainActor
-//  public func stopSynthesizing() {
-//    self.eventLaunch?(.stoppedSpeaking)
-//  }
-//  
-//  public static func listVoices() -> [Voice] {
-//    return [Voice(language: "en_US", identifier: "voice_id", name: "The Voice", gender: .male, quality: .default)]
-//  }
-//}

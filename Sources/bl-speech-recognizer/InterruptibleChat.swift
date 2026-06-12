@@ -11,7 +11,7 @@ import AVFoundation
 public protocol InterruptibleChatProtocol {
   @MainActor
   func start(locale: Locale, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
-                    event: ((InterrumpibleChatEvent) -> Void)?)
+                    event: ((InterruptibleChatEvent) -> Void)?)
   @MainActor
   func stop()
   @MainActor
@@ -23,7 +23,7 @@ public protocol InterruptibleChatProtocol {
   static func listVoices() -> [Voice]
 }
 
-public enum InterrumpibleChatEvent {
+public enum InterruptibleChatEvent {
   case startedListening
   case stoppedListening
   case startedSpeaking
@@ -32,8 +32,8 @@ public enum InterrumpibleChatEvent {
   case synthesizingRange(NSRange)
 }
 
-//protocol AudioCoordinatorProtocol: SpeechRecognizerProtocol, SpeechSynthesizerProtocol {
-//}
+@available(*, deprecated, renamed: "InterruptibleChatEvent")
+public typealias InterrumpibleChatEvent = InterruptibleChatEvent
 
 /// The `InterruptibleChat` class is responsible for handling continuous speech recognition.
 /// Also can synthesize text to speech. If user speaks while synthesizing, it becomes stopped.
@@ -54,7 +54,7 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
   // Closure to be called upon completion with the recognition result or an error.
   private var completion: ((Result<InterruptibleChat.Completion, Error>) -> Void)!
   // Closure to be called upon an event appears
-  private var eventLaunch: ((InterrumpibleChatEvent) -> Void)?
+  private var eventLaunch: ((InterruptibleChatEvent) -> Void)?
   
   private var detectedSpeech = ""
   private var timer: Timer?
@@ -102,7 +102,7 @@ public class InterruptibleChat: InterruptibleChatProtocol, @unchecked Sendable {
   ///   - completion: A closure to be executed with the result of the recognition or an error.
   @MainActor
   public func start(locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
-                    event: ((InterrumpibleChatEvent) -> Void)? = nil) {
+                    event: ((InterruptibleChatEvent) -> Void)? = nil) {
     if locale != self.locale {
       self.locale = locale
       let inputSource = InputSourceFactory.create(inputSource: inputType)
@@ -305,13 +305,7 @@ extension InterruptibleChat: @preconcurrency BLSpeechRecognizerDelegate {
       break
     case false:
       userIsSpeaking()
-//      self.timer?.invalidate()
-//      self.timer = Timer.scheduledTimer(withTimeInterval: self.waitTime, repeats: false, block: { timer in
-//        self.completion(.success(.init(text: self.detectedSpeech, isFinal: true)))
-//        self.detectedSpeech = ""
-//      })
     }
-//    print("[org.veladan.voice] thread id: \(Thread.current), recognized speech: \(text)")
   }
   
   func started() {
@@ -351,7 +345,7 @@ extension InterruptibleChat: BLSpeechSynthesizerDelegate {
 public class InterruptibleChatMock: InterruptibleChatProtocol {
   private var completion: ((Result<InterruptibleChat.Completion, Error>) -> Void)!
   // Closure to be called upon an event appears
-  private var eventLaunch: ((InterrumpibleChatEvent) -> Void)?
+  private var eventLaunch: ((InterruptibleChatEvent) -> Void)?
   
   private let recognized: [String]
   public var speaked: String = ""
@@ -362,7 +356,7 @@ public class InterruptibleChatMock: InterruptibleChatProtocol {
   
   @MainActor
   public func start(locale: Locale = .current, completion: @escaping ((Result<InterruptibleChat.Completion, Error>) -> Void),
-             event: ((InterrumpibleChatEvent) -> Void)?) {
+             event: ((InterruptibleChatEvent) -> Void)?) {
     self.completion = completion
     self.eventLaunch = event
     
