@@ -9,6 +9,7 @@ import bl_speech_recognizer
 import SwiftUI
 
 // MARK: - ViewModel
+@MainActor
 class InterruptibleChatViewModel: ObservableObject {
   @Published var recognizedText: String = ""
   @Published var isRecording: Bool = false
@@ -29,7 +30,6 @@ class InterruptibleChatViewModel: ObservableObject {
     self.selectedVoice = availableVoices.first
   }
   
-  @MainActor
   func startRecording() {
     isRecording = true
     
@@ -65,24 +65,20 @@ class InterruptibleChatViewModel: ObservableObject {
     }
   }
   
-  @MainActor
   func stopRecording() {
     isRecording = false
     interruptibleChat.stop()
     interruptibleChat.stopSynthesizing()
   }
   
-  @MainActor
   func selectVoice(_ voice: Voice) {
     stopRecording()
     selectedVoice = voice 
   }
   
   func showError(_ errorText: String) {
-    DispatchQueue.main.async {
-      self.errorText = errorText
-      self.showError = true
-    }
+    self.errorText = errorText
+    self.showError = true
   }
 
   private func synthesize() {

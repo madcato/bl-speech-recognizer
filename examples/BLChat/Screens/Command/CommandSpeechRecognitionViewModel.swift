@@ -9,6 +9,7 @@ import bl_speech_recognizer
 import SwiftUI
 
 // MARK: - ViewModel
+@MainActor
 class CommandSpeechRecognitionViewModel: ObservableObject {
   @Published var isRecording: Bool = false
   @Published var errorText: String = ""
@@ -18,7 +19,6 @@ class CommandSpeechRecognitionViewModel: ObservableObject {
 
   private var speechRecognizer = CommandSpeechRecognizer()
   
-  @MainActor
   func startRecording() {
     isRecording = true
     selectedOption = ""
@@ -37,7 +37,6 @@ class CommandSpeechRecognitionViewModel: ObservableObject {
     }
   }
   
-  @MainActor
   func stopRecording() {
     isRecording = false
     speechRecognizer.stop()

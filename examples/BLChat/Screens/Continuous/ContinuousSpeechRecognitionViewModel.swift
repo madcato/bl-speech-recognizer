@@ -9,6 +9,7 @@ import bl_speech_recognizer
 import SwiftUI
 
 // MARK: - ViewModel
+@MainActor
 class ContinuousSpeechRecognitionViewModel: ObservableObject {
   @Published var recognizedText: String = ""
   @Published var isRecording: Bool = false
@@ -17,7 +18,6 @@ class ContinuousSpeechRecognitionViewModel: ObservableObject {
 
   private var speechRecognizer = ContinuousSpeechRecognizer()
   
-  @MainActor
   func startRecording() {
     isRecording = true
     
@@ -31,7 +31,6 @@ class ContinuousSpeechRecognitionViewModel: ObservableObject {
     }
   }
   
-  @MainActor
   func stopRecording() {
     isRecording = false
     speechRecognizer.stop()
